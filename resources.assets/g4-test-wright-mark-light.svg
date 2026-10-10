@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <!-- The G4 mark of the G4 Engine Client icon, with a check mark cut into its lower right corner. -->
+  <defs>
+    <mask id="g4-test-wright-check-cut">
+      <rect width="24" height="24" fill="#fff"/>
+      <circle cx="18.5" cy="18.5" r="6" fill="#000"/>
+    </mask>
+  </defs>
+  <text x="12" y="12" text-anchor="middle" dominant-baseline="middle" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#424242" mask="url(#g4-test-wright-check-cut)">G4</text>
+  <path d="M15.6 18.6l2 2 3.6-3.8" fill="none" stroke="#424242" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

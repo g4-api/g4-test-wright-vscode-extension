@@ -1,0 +1,10 @@
+/*
+ * G4 empty state parameters, mapped to VS Code theme variables.
+ */
+:root {
+    --g4-empty-state-border: var(--vscode-panel-border);
+    --g4-empty-state-foreground: var(--vscode-descriptionForeground);
+    --g4-empty-state-heading-foreground: var(--vscode-foreground);
+    --g4-empty-state-icon-foreground: var(--vscode-icon-foreground, var(--vscode-descriptionForeground));
+    --g4-empty-state-icon-size: 28px;
+}

@@ -1,0 +1,26 @@
+<!--
+    G4 accordion: stacked sections with a clickable header each and draggable sashes between open
+    neighbors. The page's child sections become the section bodies; see g4-accordion.js.
+-->
+<template id="g4-accordion-section-template">
+    <div class="g4-accordion__section" data-part="section" data-test-id="section">
+        <button type="button"
+                class="g4-accordion__header"
+                data-part="header"
+                data-test-id="header-button"
+                aria-expanded="true">
+            <span class="g4-accordion__caret" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><path fill="currentColor" d="M471.1 297.4C483.6 309.9 483.6 330.2 471.1 342.7L279.1 534.7C266.6 547.2 246.3 547.2 233.8 534.7C221.3 522.2 221.3 501.9 233.8 489.4L403.2 320L233.9 150.6C221.4 138.1 221.4 117.8 233.9 105.3C246.4 92.8 266.7 92.8 279.2 105.3L471.2 297.3z"/></svg>
+            </span>
+            <span class="g4-accordion__title" data-part="title"></span>
+        </button>
+        <div class="g4-accordion__body" data-part="body" data-test-id="body"></div>
+    </div>
+</template>
+<template id="g4-accordion-sash-template">
+    <div class="g4-accordion__sash"
+         data-part="sash"
+         data-test-id="sash"
+         aria-orientation="horizontal"
+         role="separator"></div>
+</template>

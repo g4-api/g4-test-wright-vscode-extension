@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="g4-components" content="g4-page-header g4-section">
+    <title>G4(TM) Automation Report</title>
+    {{$ components.styles }}
+    <link rel="stylesheet" href="{{$ component.style.uri }}">
+</head>
+
+<body>
+    <div id="g4-header" data-test-id="automation-report-header-region"></div>
+    <div id="app" data-test-id="automation-report-body-region"></div>
+    <textarea id="g4-data"
+              class="automation-report-data"
+              data-test-id="automation-report-injected-data"
+              aria-label="Automation report data">
+        {{$ report.data }}
+    </textarea>
+
+    {{$ components.templates }}
+    {{$ components.scripts }}
+    <script src="{{$ component.script.uri }}"></script>
+</body>
+
+</html>

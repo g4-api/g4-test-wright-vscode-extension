@@ -1,0 +1,37 @@
+<!--
+    G4 environment picker: a header-style trigger (label, selected environment, caret) that opens a
+    list of the workspace environments with Refresh and Open folder. See g4-environment-picker.js.
+-->
+<template id="g4-environment-picker-template">
+    <button type="button"
+            class="g4-environment-picker__trigger"
+            data-part="trigger"
+            data-test-id="trigger-button"
+            aria-haspopup="listbox"
+            aria-expanded="false">
+        <span class="g4-environment-picker__label" data-part="label"></span>
+        <span class="g4-environment-picker__value" data-part="value" data-test-id="value"></span>
+        <span class="g4-environment-picker__caret" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><path fill="currentColor" d="M320 432C311.8 432 303.6 428.9 297.4 422.6L137.4 262.6C124.9 250.1 124.9 229.8 137.4 217.3C149.9 204.8 170.2 204.8 182.7 217.3L320 354.7L457.4 217.4C469.9 204.9 490.2 204.9 502.7 217.4C515.2 229.9 515.2 250.2 502.7 262.7L342.7 422.7C336.4 428.9 328.2 432 320 432z"/></svg>
+        </span>
+    </button>
+    <div class="g4-environment-picker__panel"
+         hidden
+         data-part="panel"
+         data-test-id="panel">
+        <div class="g4-environment-picker__options"
+             data-part="options"
+             data-test-id="options"
+             role="listbox"></div>
+        <div class="g4-environment-picker__footer">
+            <button type="button"
+                    class="g4-environment-picker__tool"
+                    data-part="refresh"
+                    data-test-id="refresh-button">Refresh</button>
+            <button type="button"
+                    class="g4-environment-picker__tool"
+                    data-part="open-folder"
+                    data-test-id="open-folder-button">Open folder</button>
+        </div>
+    </div>
+</template>

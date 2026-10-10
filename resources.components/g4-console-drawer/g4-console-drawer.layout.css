@@ -1,0 +1,54 @@
+/*
+ * G4 console drawer layout: a fixed header over a scrolling log that fills the drawer.
+ */
+g4-console-drawer {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.g4-console-drawer__head {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 4px 8px 4px 12px;
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+}
+
+.g4-console-drawer__title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+
+.g4-console-drawer__tools {
+    display: flex;
+    gap: 2px;
+}
+
+.g4-console-drawer__tool {
+    padding: 2px 8px;
+    border: 0;
+    font-size: 11px;
+}
+
+.g4-console-drawer__body {
+    flex: 1;
+    min-height: 0;
+    padding: 6px 12px;
+    overflow: auto;
+}
+
+.g4-console-drawer__line {
+    padding: 1px 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.g4-console-drawer__time {
+    margin-right: 8px;
+}

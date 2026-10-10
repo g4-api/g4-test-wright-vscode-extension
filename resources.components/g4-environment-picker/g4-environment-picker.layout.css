@@ -1,0 +1,113 @@
+/*
+ * G4 environment picker layout: a full-width trigger row and a panel that drops below it.
+ */
+g4-environment-picker {
+    display: block;
+    position: relative;
+    min-width: 0;
+}
+
+.g4-environment-picker__trigger {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    min-width: 0;
+    padding: 6px 10px;
+    border-width: 1px;
+    border-style: solid;
+    text-align: left;
+}
+
+.g4-environment-picker__label {
+    flex-shrink: 0;
+    font-size: 11px;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+}
+
+.g4-environment-picker__value {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    font-size: 12.5px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.g4-environment-picker__caret {
+    display: flex;
+    flex-shrink: 0;
+    width: 11px;
+    height: 11px;
+}
+
+.g4-environment-picker__caret svg {
+    width: 100%;
+    height: 100%;
+}
+
+.g4-environment-picker__panel {
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    left: 0;
+    z-index: 60;
+    border-width: 1px;
+    border-style: solid;
+}
+
+.g4-environment-picker__panel[hidden] {
+    display: none;
+}
+
+.g4-environment-picker__options {
+    display: flex;
+    flex-direction: column;
+    max-height: 260px;
+    padding: 4px;
+    overflow: auto;
+}
+
+.g4-environment-picker__option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 8px;
+    border: 0;
+    text-align: left;
+}
+
+.g4-environment-picker__option-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    font-size: 12.5px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.g4-environment-picker__option-detail {
+    flex-shrink: 0;
+    font-size: 11px;
+}
+
+.g4-environment-picker__empty {
+    padding: 8px;
+    font-size: 12px;
+}
+
+.g4-environment-picker__footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 4px;
+    padding: 4px 6px;
+    border-top-width: 1px;
+    border-top-style: solid;
+}
+
+.g4-environment-picker__tool {
+    padding: 3px 8px;
+    border: 0;
+    font-size: 12px;
+}

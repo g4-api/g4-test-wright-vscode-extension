@@ -1,0 +1,70 @@
+/*
+ * G4 tag filter visual language: a VS Code input-like trigger, a widget panel, and badge counts.
+ */
+.g4-tag-filter__trigger,
+.g4-tag-filter__search {
+    background-color: var(--g4-tag-filter-background);
+    border-color: var(--g4-tag-filter-border);
+    border-radius: var(--g4-tag-filter-radius);
+    color: var(--g4-tag-filter-foreground);
+    font-family: inherit;
+}
+
+.g4-tag-filter__trigger {
+    cursor: pointer;
+}
+
+.g4-tag-filter__trigger:disabled {
+    cursor: default;
+    opacity: .5;
+}
+
+.g4-tag-filter__trigger[aria-expanded="true"],
+.g4-tag-filter__trigger:focus-visible,
+.g4-tag-filter__search:focus {
+    border-color: var(--g4-tag-filter-focus-border);
+    outline: none;
+}
+
+.g4-tag-filter__caret,
+.g4-tag-filter__empty {
+    color: var(--g4-tag-filter-muted-foreground);
+}
+
+.g4-tag-filter__panel {
+    background-color: var(--g4-tag-filter-panel-background);
+    border-color: var(--g4-tag-filter-panel-border);
+    border-radius: var(--g4-tag-filter-radius);
+    box-shadow: var(--g4-tag-filter-panel-shadow);
+}
+
+.g4-tag-filter__tool {
+    background: transparent;
+    color: var(--g4-tag-filter-tool-foreground);
+    font-family: inherit;
+    cursor: pointer;
+}
+
+.g4-tag-filter__tool:hover {
+    text-decoration: underline;
+}
+
+.g4-tag-filter__option {
+    border-radius: var(--g4-tag-filter-radius);
+    color: var(--g4-tag-filter-foreground);
+    cursor: pointer;
+}
+
+.g4-tag-filter__option:hover {
+    background-color: var(--g4-tag-filter-hover-background);
+}
+
+.g4-tag-filter__option--checked {
+    background-color: var(--g4-tag-filter-checked-background);
+}
+
+.g4-tag-filter__option-count {
+    background-color: var(--g4-tag-filter-count-background);
+    border-radius: 9px;
+    color: var(--g4-tag-filter-count-foreground);
+}

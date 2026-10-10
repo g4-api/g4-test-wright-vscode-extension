@@ -1,0 +1,28 @@
+/*
+ * G4 run summary parameters, mapped to VS Code theme variables.
+ */
+:root {
+    --g4-run-summary-border: var(--vscode-panel-border);
+    --g4-run-summary-broken: var(--vscode-testing-iconErrored, #f14c4c);
+    --g4-run-summary-button-background: var(--vscode-button-background);
+    --g4-run-summary-button-foreground: var(--vscode-button-foreground);
+    --g4-run-summary-button-hover-background: var(--vscode-button-hoverBackground);
+    --g4-run-summary-canceled: var(--vscode-testing-iconSkipped, #848484);
+    --g4-run-summary-card-background: var(--vscode-sideBar-background, var(--vscode-editor-background));
+    --g4-run-summary-error-foreground: var(--vscode-errorForeground);
+    --g4-run-summary-failed: var(--vscode-testing-iconFailed, #f14c4c);
+    --g4-run-summary-focus-border: var(--vscode-focusBorder);
+    --g4-run-summary-foreground: var(--vscode-foreground);
+    --g4-run-summary-hover-background: var(--vscode-list-hoverBackground);
+    --g4-run-summary-message-background: var(--vscode-textCodeBlock-background, rgba(127, 127, 127, .1));
+    --g4-run-summary-monospace-font: var(--vscode-editor-font-family, monospace);
+    --g4-run-summary-muted-foreground: var(--vscode-descriptionForeground);
+    --g4-run-summary-notice-background: var(--vscode-inputValidation-infoBackground, rgba(0, 122, 204, .15));
+    --g4-run-summary-passed: var(--vscode-testing-iconPassed, #73c991);
+    --g4-run-summary-queued: var(--vscode-testing-iconQueued, #cca700);
+    --g4-run-summary-radius: 3px;
+    --g4-run-summary-secondary-background: var(--vscode-button-secondaryBackground);
+    --g4-run-summary-secondary-foreground: var(--vscode-button-secondaryForeground);
+    --g4-run-summary-secondary-hover-background: var(--vscode-button-secondaryHoverBackground);
+    --g4-run-summary-warning: var(--vscode-editorWarning-foreground, #cca700);
+}

@@ -1,0 +1,160 @@
+{
+    "name": "g4-test-wright",
+    "displayName": "G4 Studio Test Wright",
+    "description": "A G4 bots test workbench for VS Code: discover the bots of a G4 project, build run plans with drag and drop, run them against the G4 engine, and review G4 and Allure reports.",
+    "version": "0.0.1",
+    "engines": {
+        "vscode": "^1.105.0"
+    },
+    "publisher": "g4-api",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/g4-api/g4-test-wright-vscode-extension.git"
+    },
+    "categories": [
+        "Testing",
+        "Other"
+    ],
+    "keywords": [
+        "g4",
+        "automation",
+        "test runner",
+        "allure",
+        "rpa"
+    ],
+    "activationEvents": [
+        "onStartupFinished",
+        "onWebviewPanel:g4TestWright.panel"
+    ],
+    "license": "Apache-2.0",
+    "main": "./dist/extension.js",
+    "contributes": {
+        "commands": [
+            {
+                "command": "TestWright.Show",
+                "category": "G4 Test Wright",
+                "title": "Open Test Wright",
+                "icon": "$(beaker)"
+            },
+            {
+                "command": "TestWright.OpenNew",
+                "category": "G4 Test Wright",
+                "title": "Open New Test Wright Tab",
+                "icon": "$(add)"
+            },
+            {
+                "command": "TestWright.ShowComponentGallery",
+                "category": "G4 Test Wright",
+                "title": "Show Component Gallery (Development)"
+            },
+            {
+                "command": "TestWright.ShowRunReport",
+                "category": "G4 Test Wright",
+                "title": "Open Run Report"
+            },
+            {
+                "command": "TestWright.ConvertRunToAllure",
+                "category": "G4 Test Wright",
+                "title": "Convert Run to Allure Results"
+            }
+        ],
+        "views": {
+            "g4TestWrightContainer": [
+                {
+                    "type": "tree",
+                    "id": "g4TestWrightLauncher",
+                    "name": "Test Wright",
+                    "icon": "resources.assets/g4-test-wright-mark.svg"
+                }
+            ]
+        },
+        "viewsWelcome": [
+            {
+                "view": "g4TestWrightLauncher",
+                "contents": "Discover the bots of your G4 project, build a run plan, and run it against the G4 engine.\n[Open Test Wright](command:TestWright.OpenNew)\nEach click opens another Test Wright tab, so you can work on several plans at once. Each file under bots/ is a test and each subfolder is a suite. Runs are saved under reports/ with G4 and Allure reports."
+            }
+        ],
+        "viewsContainers": {
+            "activitybar": [
+                {
+                    "id": "g4TestWrightContainer",
+                    "title": "G4 Test Wright",
+                    "icon": "resources.assets/g4-test-wright-mark.svg"
+                }
+            ]
+        },
+        "menus": {
+            "explorer/context": [
+                {
+                    "command": "TestWright.ShowRunReport",
+                    "group": "navigation@1",
+                    "when": "resourceScheme == file && !explorerResourceIsFolder && resourceFilename == run.json"
+                },
+                {
+                    "command": "TestWright.ConvertRunToAllure",
+                    "group": "navigation@2",
+                    "when": "resourceScheme == file && !explorerResourceIsFolder && resourceFilename == run.json"
+                }
+            ],
+            "commandPalette": [
+                {
+                    "command": "TestWright.ShowComponentGallery",
+                    "when": "g4TestWright.isDevelopment"
+                },
+                {
+                    "command": "TestWright.ShowRunReport",
+                    "when": "false"
+                },
+                {
+                    "command": "TestWright.ConvertRunToAllure",
+                    "when": "false"
+                }
+            ]
+        },
+        "grammars": [
+            {
+                "language": "g4log",
+                "scopeName": "source.g4.log",
+                "path": "./languages/g4-log-tm-language.json"
+            }
+        ],
+        "languages": [
+            {
+                "id": "g4log",
+                "aliases": [
+                    "G4Log",
+                    "g4Log"
+                ],
+                "extensions": []
+            }
+        ]
+    },
+    "readme": "README.md",
+    "licenses": [
+        {
+            "path": "LICENSE",
+            "type": "Apache-2.0"
+        }
+    ],
+    "scripts": {
+        "vscode:prepublish": "npm run package",
+        "compile": "webpack",
+        "watch": "webpack --watch",
+        "package": "webpack --mode production --devtool hidden-source-map",
+        "lint": "eslint src"
+    },
+    "devDependencies": {
+        "@types/node": "20.x",
+        "@types/vscode": "^1.105.0",
+        "@typescript-eslint/eslint-plugin": "^8.31.1",
+        "@typescript-eslint/parser": "^8.31.1",
+        "eslint": "^9.25.1",
+        "ts-loader": "^9.5.2",
+        "typescript": "^5.8.3",
+        "webpack": "^5.99.7",
+        "webpack-cli": "^6.0.1"
+    },
+    "dependencies": {
+        "allure": "3.20.1"
+    }
+}

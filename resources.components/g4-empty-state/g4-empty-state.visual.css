@@ -1,0 +1,16 @@
+/*
+ * G4 empty state visual language: a faint dashed frame with muted text.
+ */
+.g4-empty-state__box {
+    border-color: var(--g4-empty-state-border);
+    color: var(--g4-empty-state-foreground);
+}
+
+.g4-empty-state__icon {
+    color: var(--g4-empty-state-icon-foreground);
+    opacity: .75;
+}
+
+.g4-empty-state__heading {
+    color: var(--g4-empty-state-heading-foreground);
+}

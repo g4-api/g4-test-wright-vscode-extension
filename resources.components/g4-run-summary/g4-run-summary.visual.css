@@ -1,0 +1,124 @@
+/*
+ * G4 run summary visual language: VS Code testing colors for statuses and card-style bot rows.
+ */
+g4-run-summary {
+    color: var(--g4-run-summary-foreground);
+}
+
+.g4-run-summary__meta,
+.g4-run-summary__case-time,
+.g4-run-summary__case-detail,
+.g4-run-summary__empty {
+    color: var(--g4-run-summary-muted-foreground);
+}
+
+.g4-run-summary__tally {
+    border-top-color: var(--g4-run-summary-border);
+    border-bottom-color: var(--g4-run-summary-border);
+}
+
+.g4-run-summary__tally-entry--passed strong {
+    color: var(--g4-run-summary-passed);
+}
+
+.g4-run-summary__tally-entry--failed strong {
+    color: var(--g4-run-summary-failed);
+}
+
+.g4-run-summary__tally-entry--warning strong {
+    color: var(--g4-run-summary-warning);
+}
+
+.g4-run-summary__tally-entry--broken strong {
+    color: var(--g4-run-summary-broken);
+}
+
+.g4-run-summary__tally-entry--canceled strong {
+    color: var(--g4-run-summary-canceled);
+}
+
+.g4-run-summary__tool {
+    background-color: var(--g4-run-summary-secondary-background);
+    border-radius: var(--g4-run-summary-radius);
+    color: var(--g4-run-summary-secondary-foreground);
+    font-family: inherit;
+    cursor: pointer;
+}
+
+.g4-run-summary__tool:hover {
+    background-color: var(--g4-run-summary-secondary-hover-background);
+}
+
+.g4-run-summary__tool--primary {
+    background-color: var(--g4-run-summary-button-background);
+    color: var(--g4-run-summary-button-foreground);
+}
+
+.g4-run-summary__tool--primary:hover {
+    background-color: var(--g4-run-summary-button-hover-background);
+}
+
+.g4-run-summary__notice {
+    background-color: var(--g4-run-summary-notice-background);
+    border-radius: var(--g4-run-summary-radius);
+}
+
+.g4-run-summary__notice--error {
+    color: var(--g4-run-summary-error-foreground);
+}
+
+.g4-run-summary__case {
+    background-color: var(--g4-run-summary-card-background);
+    border-color: var(--g4-run-summary-border);
+    border-radius: var(--g4-run-summary-radius);
+}
+
+.g4-run-summary__case--openable {
+    cursor: pointer;
+}
+
+.g4-run-summary__case--openable:hover {
+    background-color: var(--g4-run-summary-hover-background);
+}
+
+.g4-run-summary__case--openable:focus-visible {
+    border-color: var(--g4-run-summary-focus-border);
+    outline: none;
+}
+
+.g4-run-summary__case-message {
+    background-color: var(--g4-run-summary-message-background);
+    border-radius: var(--g4-run-summary-radius);
+    font-family: var(--g4-run-summary-monospace-font);
+}
+
+.g4-run-summary__badge {
+    border-color: currentColor;
+    border-radius: 10px;
+}
+
+.g4-run-summary__badge--passed {
+    color: var(--g4-run-summary-passed);
+}
+
+.g4-run-summary__badge--failed {
+    color: var(--g4-run-summary-failed);
+}
+
+.g4-run-summary__badge--warning {
+    color: var(--g4-run-summary-warning);
+}
+
+.g4-run-summary__badge--broken {
+    color: var(--g4-run-summary-broken);
+}
+
+.g4-run-summary__badge--canceled,
+.g4-run-summary__badge--not-run {
+    color: var(--g4-run-summary-canceled);
+}
+
+.g4-run-summary__badge--queued,
+.g4-run-summary__badge--running {
+    color: var(--g4-run-summary-queued);
+}

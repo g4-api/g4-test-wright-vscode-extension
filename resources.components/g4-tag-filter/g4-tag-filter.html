@@ -1,0 +1,43 @@
+<!--
+    G4 tag filter: a trigger that summarizes the selected tags and opens a searchable, multi-select
+    list with counts. See g4-tag-filter.js.
+-->
+<template id="g4-tag-filter-template">
+    <button type="button"
+            class="g4-tag-filter__trigger"
+            data-part="trigger"
+            data-test-id="trigger-button"
+            aria-haspopup="listbox"
+            aria-expanded="false">
+        <span class="g4-tag-filter__label" data-part="label" data-test-id="label"></span>
+        <span class="g4-tag-filter__caret" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><path fill="currentColor" d="M320 432C311.8 432 303.6 428.9 297.4 422.6L137.4 262.6C124.9 250.1 124.9 229.8 137.4 217.3C149.9 204.8 170.2 204.8 182.7 217.3L320 354.7L457.4 217.4C469.9 204.9 490.2 204.9 502.7 217.4C515.2 229.9 515.2 250.2 502.7 262.7L342.7 422.7C336.4 428.9 328.2 432 320 432z"/></svg>
+        </span>
+    </button>
+    <div class="g4-tag-filter__panel"
+         hidden
+         data-part="panel"
+         data-test-id="panel">
+        <input type="text"
+               class="g4-tag-filter__search"
+               placeholder="Search tags..."
+               data-part="search"
+               data-test-id="search-input"
+               aria-label="Search tags">
+        <div class="g4-tag-filter__actions">
+            <button type="button"
+                    class="g4-tag-filter__tool"
+                    data-part="select-all"
+                    data-test-id="select-all-button">Select all</button>
+            <button type="button"
+                    class="g4-tag-filter__tool"
+                    data-part="clear"
+                    data-test-id="clear-button">Clear</button>
+        </div>
+        <div class="g4-tag-filter__options"
+             data-part="options"
+             data-test-id="options"
+             aria-multiselectable="true"
+             role="listbox"></div>
+    </div>
+</template>

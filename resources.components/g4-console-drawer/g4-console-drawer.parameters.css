@@ -1,0 +1,21 @@
+/*
+ * G4 console drawer parameters, mapped to VS Code theme variables.
+ */
+:root {
+    --g4-console-drawer-background: var(--vscode-panel-background, var(--vscode-editor-background));
+    --g4-console-drawer-border: var(--vscode-panel-border);
+    --g4-console-drawer-fail-foreground: var(--vscode-testing-iconFailed, #f14c4c);
+    --g4-console-drawer-font-family: var(--vscode-editor-font-family, monospace);
+    --g4-console-drawer-font-size: var(--vscode-editor-font-size, 12px);
+    --g4-console-drawer-foreground: var(--vscode-foreground);
+    --g4-console-drawer-head-background: var(--vscode-sideBarSectionHeader-background, transparent);
+    --g4-console-drawer-info-foreground: var(--vscode-textLink-foreground);
+    --g4-console-drawer-muted-foreground: var(--vscode-descriptionForeground);
+    --g4-console-drawer-pass-foreground: var(--vscode-testing-iconPassed, #73c991);
+    --g4-console-drawer-time-foreground: var(--vscode-descriptionForeground);
+    --g4-console-drawer-title-foreground: var(--vscode-sideBarSectionHeader-foreground, var(--vscode-foreground));
+    --g4-console-drawer-tool-foreground: var(--vscode-descriptionForeground);
+    --g4-console-drawer-tool-hover-background: var(--vscode-toolbar-hoverBackground);
+    --g4-console-drawer-tool-hover-foreground: var(--vscode-foreground);
+    --g4-console-drawer-warn-foreground: var(--vscode-testing-iconQueued, #cca700);
+}

@@ -1,0 +1,26 @@
+/*
+ * Component gallery visual language: editor colors with sidebar-colored cards.
+ */
+body {
+    background-color: var(--component-gallery-background);
+    color: var(--component-gallery-foreground);
+    font-family: var(--component-gallery-font-family);
+}
+
+.gallery-hint {
+    color: var(--component-gallery-muted-foreground);
+}
+
+.gallery-card {
+    background-color: var(--component-gallery-card-background);
+    border-color: var(--component-gallery-border);
+    border-radius: 4px;
+}
+
+.gallery-button {
+    background-color: var(--component-gallery-button-background);
+    border-radius: 3px;
+    color: var(--component-gallery-button-foreground);
+    font-family: inherit;
+    cursor: pointer;
+}

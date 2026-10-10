@@ -1,0 +1,45 @@
+/*
+ * G4 empty state layout: a column centered in the space the list leaves.
+ */
+g4-empty-state {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+}
+
+.g4-empty-state__box {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin: 4px;
+    padding: 24px 16px;
+    border-width: 1px;
+    border-style: dashed;
+    text-align: center;
+}
+
+.g4-empty-state__icon {
+    display: flex;
+    width: var(--g4-empty-state-icon-size);
+    height: var(--g4-empty-state-icon-size);
+    margin-bottom: 4px;
+}
+
+.g4-empty-state__icon svg {
+    width: 100%;
+    height: 100%;
+}
+
+.g4-empty-state__heading {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.g4-empty-state__subtitle {
+    max-width: 280px;
+    font-size: 12px;
+    line-height: 1.4;
+}

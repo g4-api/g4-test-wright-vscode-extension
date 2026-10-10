@@ -1,0 +1,58 @@
+/*
+ * G4 console drawer visual language: an editor-font log colored by line kind.
+ */
+g4-console-drawer {
+    background-color: var(--g4-console-drawer-background);
+    color: var(--g4-console-drawer-foreground);
+}
+
+.g4-console-drawer__head {
+    background-color: var(--g4-console-drawer-head-background);
+    border-bottom-color: var(--g4-console-drawer-border);
+}
+
+.g4-console-drawer__title {
+    color: var(--g4-console-drawer-title-foreground);
+}
+
+.g4-console-drawer__tool {
+    background: transparent;
+    color: var(--g4-console-drawer-tool-foreground);
+    font-family: inherit;
+    cursor: pointer;
+}
+
+.g4-console-drawer__tool:hover {
+    background-color: var(--g4-console-drawer-tool-hover-background);
+    color: var(--g4-console-drawer-tool-hover-foreground);
+}
+
+.g4-console-drawer__body {
+    font-family: var(--g4-console-drawer-font-family);
+    font-size: var(--g4-console-drawer-font-size);
+    user-select: text;
+}
+
+.g4-console-drawer__time {
+    color: var(--g4-console-drawer-time-foreground);
+}
+
+.g4-console-drawer__line--info {
+    color: var(--g4-console-drawer-info-foreground);
+}
+
+.g4-console-drawer__line--pass {
+    color: var(--g4-console-drawer-pass-foreground);
+}
+
+.g4-console-drawer__line--fail {
+    color: var(--g4-console-drawer-fail-foreground);
+}
+
+.g4-console-drawer__line--warn {
+    color: var(--g4-console-drawer-warn-foreground);
+}
+
+.g4-console-drawer__line--muted {
+    color: var(--g4-console-drawer-muted-foreground);
+}

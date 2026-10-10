@@ -1,0 +1,38 @@
+<!--
+    G4 run summary: the header, tally, tools, and one row per bot of a Test Wright run record.
+    See g4-run-summary.js.
+-->
+<template id="g4-run-summary-template">
+    <div class="g4-run-summary__head" data-test-id="head">
+        <div class="g4-run-summary__title-row">
+            <span class="g4-run-summary__title" data-part="title" data-test-id="title"></span>
+            <span class="g4-run-summary__badge" data-part="status" data-test-id="status-badge"></span>
+        </div>
+        <div class="g4-run-summary__meta" data-part="meta" data-test-id="meta"></div>
+    </div>
+    <div class="g4-run-summary__tally" data-part="tally" data-test-id="tally"></div>
+    <div class="g4-run-summary__tools">
+        <button type="button"
+                class="g4-run-summary__tool g4-run-summary__tool--primary"
+                data-action="open-allure"
+                data-test-id="open-allure-button">Open Allure</button>
+        <button type="button"
+                class="g4-run-summary__tool"
+                data-action="open-allure-browser"
+                data-test-id="open-allure-browser-button">Allure in Browser</button>
+        <button type="button"
+                class="g4-run-summary__tool"
+                data-action="convert-allure"
+                data-test-id="convert-allure-button">Convert to Allure</button>
+        <button type="button"
+                class="g4-run-summary__tool"
+                data-action="open-json"
+                data-test-id="open-json-button">Open run.json</button>
+        <button type="button"
+                class="g4-run-summary__tool"
+                data-action="reveal-folder"
+                data-test-id="reveal-folder-button">Reveal Folder</button>
+    </div>
+    <div class="g4-run-summary__notice" hidden data-part="notice" data-test-id="notice"></div>
+    <div class="g4-run-summary__cases" data-part="cases" data-test-id="cases"></div>
+</template>

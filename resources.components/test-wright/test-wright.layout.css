@@ -1,0 +1,836 @@
+/*
+ * Test Wright page layout: header, a five-track body grid (sidebar | resizer | tree+plan | resizer |
+ * repositories), a console drawer, and a status bar. Panel widths are applied by
+ * test-wright-layout.js as inline grid tracks.
+ */
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    overflow: hidden;
+    font-size: 13px;
+}
+
+.app {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+/* ===== Header ===== */
+.header {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 20px;
+    min-height: 56px;
+    padding: 8px 16px;
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+}
+
+.brand {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 10px;
+}
+
+.brand-mark {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: .04em;
+}
+
+.brand-text h1 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.1;
+}
+
+.brand-sub {
+    font-size: 10.5px;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+}
+
+.header-folder-stack {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+}
+
+.header-folder {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    min-width: 0;
+    padding: 6px 10px;
+    border-width: 1px;
+    border-style: solid;
+    font-size: inherit;
+    text-align: left;
+}
+
+.header-folder-label {
+    flex-shrink: 0;
+    font-size: 11px;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+}
+
+.header-folder-path {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    font-size: 12.5px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    direction: rtl;
+    text-align: left;
+}
+
+.header-folder-browse {
+    flex-shrink: 0;
+    padding: 2px 8px;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+}
+
+.header-status {
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    align-items: flex-end;
+    gap: 6px;
+}
+
+.engine-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    max-width: 260px;
+    padding: 2px 8px;
+    border: 0;
+    font-size: 11.5px;
+}
+
+.engine-chip span:last-child {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.engine-dot,
+.status-dot {
+    flex-shrink: 0;
+    width: 8px;
+    height: 8px;
+}
+
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 12px;
+    border-width: 1px;
+    border-style: solid;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* ===== Body grid ===== */
+.body {
+    display: grid;
+    flex: 1;
+    grid-template-columns: 290px 5px 1fr 5px 320px;
+    grid-template-rows: minmax(0, 1fr);
+    min-height: 0;
+    overflow: hidden;
+}
+
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 16px 14px;
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+}
+
+.sidebar.collapsed,
+.repo.collapsed {
+    padding-right: 0;
+    padding-left: 0;
+    overflow: hidden;
+}
+
+.side-section {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+}
+
+.side-title {
+    margin: 0;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+
+.hint {
+    margin: 0;
+    font-size: 11.5px;
+    line-height: 1.4;
+}
+
+.input {
+    width: 100%;
+    padding: 6px 9px;
+    border-width: 1px;
+    border-style: solid;
+    font-size: 13px;
+}
+
+.btn {
+    padding: 6px 14px;
+    border: 0;
+    font-size: 12.5px;
+    font-weight: 600;
+}
+
+.btn-fixed {
+    align-self: flex-start;
+    width: 160px;
+    height: 30px;
+}
+
+.btn-sm {
+    padding: 4px 10px;
+    font-size: 12px;
+}
+
+.resizer,
+.pane-resizer {
+    width: 5px;
+    min-height: 0;
+}
+
+.drawer-resizer {
+    flex-shrink: 0;
+    height: 5px;
+}
+
+/* ===== Schedules ===== */
+.schedule-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.schedule-list:empty {
+    display: none;
+}
+
+.schedule-item {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 9px;
+    border-width: 1px;
+    border-style: solid;
+}
+
+.schedule-main {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+.schedule-label {
+    width: 100%;
+    padding: 2px 4px;
+    border-width: 1px;
+    border-style: solid;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.schedule-meta {
+    padding-left: 4px;
+    font-size: 11px;
+}
+
+/* ===== Main: tree | plan ===== */
+.main {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+}
+
+.main-split {
+    display: grid;
+    flex: 1;
+    grid-template-columns: 1fr 5px 1fr;
+    grid-template-rows: minmax(0, 1fr);
+    min-height: 0;
+}
+
+.tree-pane,
+.plan-pane {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+}
+
+.pane-head {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+}
+
+.pane-head.stacked {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+}
+
+.pane-head-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.pane-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.pane-counts {
+    display: flex;
+    flex: 1;
+    flex-wrap: wrap;
+    gap: 14px;
+    min-width: 0;
+}
+
+.pane-counts span {
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.pane-counts strong {
+    margin-right: 3px;
+    font-size: 13px;
+}
+
+.pane-actions {
+    display: flex;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+}
+
+.pane-actions-spacer {
+    flex: 1;
+}
+
+.icon-btn {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 26px;
+    padding: 0;
+    border: 0;
+}
+
+.icon-btn svg {
+    display: block;
+}
+
+.tree-list,
+.plan-list {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 6px;
+    min-height: 0;
+    padding: 10px 12px;
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+}
+
+.tree-list {
+    gap: 0;
+    padding: 4px 0;
+    outline: none;
+}
+
+/* The tree pane is a size container so tags can hide when it is narrow. */
+.tree-pane {
+    container-type: inline-size;
+}
+
+.tree-row {
+    position: relative;
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 4px;
+    height: 22px;
+    padding-right: 6px;
+}
+
+.tree-guide {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+}
+
+.tree-chevron,
+.tree-icon,
+.tree-status {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+}
+
+.tree-chevron svg {
+    width: 12px;
+    height: 12px;
+}
+
+.tree-icon svg {
+    width: 15px;
+    height: 15px;
+}
+
+.tree-status svg {
+    width: 12px;
+    height: 12px;
+}
+
+.tree-name {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    padding-left: 2px;
+    font-size: 13px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.tree-count {
+    flex-shrink: 0;
+    min-width: 16px;
+    font-size: 11px;
+    text-align: right;
+}
+
+.tree-chips {
+    display: flex;
+    flex-shrink: 1;
+    flex-wrap: nowrap;
+    gap: 3px;
+    min-width: 0;
+    max-width: 40%;
+    overflow: hidden;
+}
+
+/* Tags are hidden when the pane is narrow; the row tooltip still lists them. */
+@container (max-width: 280px) {
+    .tree-chips {
+        display: none;
+    }
+}
+
+.tree-add {
+    display: none;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border: 0;
+}
+
+.tree-add svg {
+    width: 12px;
+    height: 12px;
+}
+
+.tree-row:hover .tree-add,
+.tree-row.selected .tree-add {
+    display: inline-flex;
+}
+
+.chip {
+    padding: 0 5px;
+    font-size: 10.5px;
+    line-height: 16px;
+    white-space: nowrap;
+}
+
+.plan-row {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 10px;
+    border-width: 1px;
+    border-style: solid;
+}
+
+.plan-handle {
+    flex-shrink: 0;
+    font-size: 14px;
+    line-height: 1;
+}
+
+.plan-check {
+    flex-shrink: 0;
+    margin: 0;
+}
+
+.plan-order {
+    flex-shrink: 0;
+    width: 20px;
+    font-size: 12px;
+    text-align: right;
+}
+
+.plan-main {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.plan-name {
+    overflow: hidden;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.plan-path {
+    overflow: hidden;
+    font-size: 11px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.plan-remove,
+.schedule-cancel {
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border: 0;
+    font-size: 15px;
+    line-height: 1;
+}
+
+.plan-empty {
+    display: grid;
+    flex: 1;
+    place-content: center;
+    justify-items: center;
+    gap: 6px;
+    margin: 4px;
+    padding: 30px;
+    border-width: 1px;
+    border-style: dashed;
+    font-size: 13px;
+    text-align: center;
+}
+
+.plan-empty small {
+    font-size: 11.5px;
+}
+
+.badge {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    min-width: 72px;
+    padding: 2px 8px;
+    border-width: 1px;
+    border-style: solid;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.run-dots {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    height: 11px;
+}
+
+.run-dots span {
+    width: 4px;
+    height: 4px;
+}
+
+/* ===== Repositories ===== */
+.repo {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.acc-body-inner {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 0;
+    padding: 10px 12px;
+}
+
+.repo-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.repo-bar--end {
+    justify-content: flex-end;
+}
+
+.repo-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.repo-item {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 10px;
+    border-width: 1px;
+    border-style: solid;
+}
+
+.repo-item-main {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.repo-item-name {
+    overflow: hidden;
+    font-size: 12.5px;
+    font-weight: 600;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.repo-item-path,
+.repo-item-date {
+    overflow: hidden;
+    font-size: 11px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.repo-item-count {
+    flex-shrink: 0;
+    padding: 0 8px;
+    font-size: 11px;
+}
+
+.report-stats {
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    align-items: flex-end;
+    gap: 2px;
+    font-size: 11px;
+}
+
+/* g4-toggle sits inline in toolbars here instead of stacking like a form field. */
+.compact-toggle {
+    margin-bottom: 0;
+}
+
+/* ===== Console drawer ===== */
+.console-drawer {
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    height: 220px;
+    border-top-width: 1px;
+    border-top-style: solid;
+}
+
+.console-drawer[hidden] {
+    display: none;
+}
+
+.console-drawer g4-console-drawer {
+    flex: 1;
+}
+
+/* ===== Status bar ===== */
+.statusbar {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: space-between;
+    height: 26px;
+    padding: 0 6px 0 10px;
+}
+
+.statusbar-info {
+    font-size: 12px;
+}
+
+.statusbar-toggles {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.layout-toggle {
+    display: grid;
+    position: relative;
+    place-items: center;
+    width: 26px;
+    height: 22px;
+    padding: 0;
+    border: 0;
+}
+
+.console-unread {
+    position: absolute;
+    top: 3px;
+    right: 3px;
+    width: 6px;
+    height: 6px;
+}
+
+.console-unread[hidden] {
+    display: none;
+}
+
+/* ===== Edge handles ===== */
+.edge-handle {
+    display: none;
+    position: fixed;
+    top: 56px;
+    bottom: 26px;
+    z-index: 40;
+    width: 6px;
+}
+
+.edge-handle.visible {
+    display: block;
+}
+
+.edge-left {
+    left: 0;
+}
+
+.edge-right {
+    right: 0;
+}
+
+.edge-bottom {
+    top: auto;
+    right: 0;
+    bottom: 26px;
+    left: 0;
+    width: auto;
+    height: 6px;
+}
+
+/* ===== Report viewer modal ===== */
+.report-viewer {
+    display: flex;
+    flex-direction: column;
+    width: min(920px, calc(100vw - 64px));
+    max-height: calc(100vh - 120px);
+}
+
+.report-viewer g4-run-summary {
+    flex: 1;
+    min-height: 0;
+}
+
+/* ===== Dialogs ===== */
+.dialog-body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: min(460px, calc(100vw - 64px));
+    padding: 16px;
+}
+
+.dialog-message {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}

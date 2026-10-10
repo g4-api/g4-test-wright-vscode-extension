@@ -1,0 +1,19 @@
+/*
+ * G4 tag filter parameters, mapped to VS Code theme variables.
+ */
+:root {
+    --g4-tag-filter-background: var(--vscode-input-background);
+    --g4-tag-filter-border: var(--vscode-input-border, var(--vscode-panel-border));
+    --g4-tag-filter-checked-background: var(--vscode-list-inactiveSelectionBackground);
+    --g4-tag-filter-count-background: var(--vscode-badge-background);
+    --g4-tag-filter-count-foreground: var(--vscode-badge-foreground);
+    --g4-tag-filter-focus-border: var(--vscode-focusBorder);
+    --g4-tag-filter-foreground: var(--vscode-input-foreground);
+    --g4-tag-filter-hover-background: var(--vscode-list-hoverBackground);
+    --g4-tag-filter-muted-foreground: var(--vscode-descriptionForeground);
+    --g4-tag-filter-panel-background: var(--vscode-editorWidget-background, var(--vscode-editor-background));
+    --g4-tag-filter-panel-border: var(--vscode-editorWidget-border, var(--vscode-panel-border));
+    --g4-tag-filter-panel-shadow: 0 4px 16px var(--vscode-widget-shadow, rgba(0, 0, 0, .35));
+    --g4-tag-filter-radius: 2px;
+    --g4-tag-filter-tool-foreground: var(--vscode-textLink-foreground);
+}

@@ -1,0 +1,99 @@
+/*
+ * G4 date picker visual language: a VS Code input with a floating widget popup.
+ */
+.g4-date-picker__field {
+    background-color: var(--g4-date-picker-background);
+    border-color: var(--g4-date-picker-border);
+    border-radius: var(--g4-date-picker-radius);
+}
+
+.g4-date-picker__field:focus-within {
+    border-color: var(--g4-date-picker-focus-border);
+}
+
+.g4-date-picker__input {
+    background: transparent;
+    color: var(--g4-date-picker-foreground);
+    font-family: inherit;
+    outline: none;
+}
+
+.g4-date-picker__input::placeholder {
+    color: var(--g4-date-picker-placeholder-foreground);
+}
+
+.g4-date-picker__toggle,
+.g4-date-picker__nav {
+    background: transparent;
+    color: var(--g4-date-picker-muted-foreground);
+    cursor: pointer;
+}
+
+.g4-date-picker__toggle:hover,
+.g4-date-picker__nav:hover {
+    color: var(--g4-date-picker-foreground);
+}
+
+.g4-date-picker__popup {
+    background-color: var(--g4-date-picker-popup-background);
+    border-color: var(--g4-date-picker-popup-border);
+    border-radius: var(--g4-date-picker-radius);
+    box-shadow: var(--g4-date-picker-popup-shadow);
+    color: var(--g4-date-picker-foreground);
+}
+
+.g4-date-picker__weekdays span,
+.g4-date-picker__time-label {
+    color: var(--g4-date-picker-muted-foreground);
+}
+
+.g4-date-picker__day {
+    background: transparent;
+    border-color: transparent;
+    border-radius: var(--g4-date-picker-radius);
+    color: inherit;
+    font-family: inherit;
+    cursor: pointer;
+}
+
+.g4-date-picker__day:hover:not(:disabled) {
+    background-color: var(--g4-date-picker-day-hover-background);
+}
+
+.g4-date-picker__day:disabled {
+    cursor: default;
+    opacity: var(--g4-date-picker-disabled-opacity);
+}
+
+.g4-date-picker__day--today {
+    border-color: var(--g4-date-picker-today-border);
+}
+
+.g4-date-picker__day--picked {
+    background-color: var(--g4-date-picker-picked-background);
+    color: var(--g4-date-picker-picked-foreground);
+}
+
+.g4-date-picker__time {
+    background-color: var(--g4-date-picker-background);
+    border-color: var(--g4-date-picker-border);
+    color: var(--g4-date-picker-foreground);
+    font-family: inherit;
+}
+
+.g4-date-picker__action {
+    background-color: var(--g4-date-picker-secondary-background);
+    border-radius: var(--g4-date-picker-radius);
+    color: var(--g4-date-picker-secondary-foreground);
+    font-family: inherit;
+    cursor: pointer;
+}
+
+.g4-date-picker__action--primary {
+    background-color: var(--g4-date-picker-button-background);
+    color: var(--g4-date-picker-button-foreground);
+}
+
+.g4-date-picker__action--primary:hover {
+    background-color: var(--g4-date-picker-button-hover-background);
+}

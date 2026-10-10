@@ -1,0 +1,91 @@
+/*
+ * G4 environment picker visual language: a VS Code input-like trigger and a widget dropdown.
+ */
+.g4-environment-picker__trigger {
+    background-color: var(--g4-environment-picker-background);
+    border-color: var(--g4-environment-picker-border);
+    border-radius: var(--g4-environment-picker-radius);
+    color: var(--g4-environment-picker-foreground);
+    font-family: inherit;
+    cursor: pointer;
+}
+
+.g4-environment-picker__trigger:focus-visible,
+.g4-environment-picker__trigger[aria-expanded="true"] {
+    border-color: var(--g4-environment-picker-focus-border);
+    outline: none;
+}
+
+.g4-environment-picker__trigger:disabled {
+    cursor: default;
+    opacity: .5;
+}
+
+.g4-environment-picker__label,
+.g4-environment-picker__caret,
+.g4-environment-picker__option-detail,
+.g4-environment-picker__empty {
+    color: var(--g4-environment-picker-label-foreground);
+}
+
+.g4-environment-picker__value--missing {
+    color: var(--g4-environment-picker-missing-foreground);
+}
+
+.g4-environment-picker__panel {
+    background-color: var(--g4-environment-picker-panel-background);
+    border-color: var(--g4-environment-picker-panel-border);
+    border-radius: var(--g4-environment-picker-radius);
+    box-shadow: var(--g4-environment-picker-panel-shadow);
+}
+
+.g4-environment-picker__option {
+    background: transparent;
+    border-radius: var(--g4-environment-picker-radius);
+    color: var(--g4-environment-picker-foreground);
+    font-family: inherit;
+    cursor: pointer;
+}
+
+.g4-environment-picker__option:hover,
+.g4-environment-picker__option:focus-visible {
+    background-color: var(--g4-environment-picker-hover-background);
+    outline: none;
+}
+
+.g4-environment-picker__option--selected,
+.g4-environment-picker__option--selected:hover {
+    background-color: var(--g4-environment-picker-selected-background);
+    color: var(--g4-environment-picker-selected-foreground);
+}
+
+.g4-environment-picker__option--selected .g4-environment-picker__option-detail {
+    color: inherit;
+}
+
+/* An environment the engine cannot take: dimmed, not clickable, its reason in warning color. */
+.g4-environment-picker__option--invalid,
+.g4-environment-picker__option--invalid:hover {
+    background: transparent;
+    cursor: not-allowed;
+    opacity: .7;
+}
+
+.g4-environment-picker__option--invalid .g4-environment-picker__option-detail {
+    color: var(--g4-environment-picker-missing-foreground);
+}
+
+.g4-environment-picker__footer {
+    border-top-color: var(--g4-environment-picker-panel-border);
+}
+
+.g4-environment-picker__tool {
+    background: transparent;
+    color: var(--g4-environment-picker-tool-foreground);
+    font-family: inherit;
+    cursor: pointer;
+}
+
+.g4-environment-picker__tool:hover {
+    text-decoration: underline;
+}

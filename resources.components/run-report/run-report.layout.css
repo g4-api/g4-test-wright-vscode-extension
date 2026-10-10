@@ -1,0 +1,33 @@
+/*
+ * Run report page layout: the summary fills the tab and scrolls its bot list.
+ */
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    height: 100%;
+    margin: 0;
+}
+
+body {
+    font-size: 13px;
+}
+
+.run-report {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.run-report g4-run-summary {
+    flex: 1;
+    min-height: 0;
+}
+
+.run-report-data {
+    display: none;
+}

@@ -1,0 +1,25 @@
+<!--
+    G4 console drawer: a titled output log with Copy and Clear tools. See g4-console-drawer.js.
+-->
+<template id="g4-console-drawer-template">
+    <div class="g4-console-drawer__head" data-test-id="head">
+        <span class="g4-console-drawer__title" data-part="title" data-test-id="title">Console</span>
+        <span class="g4-console-drawer__tools">
+            <button type="button"
+                    class="g4-console-drawer__tool"
+                    title="Copy output"
+                    data-part="copy"
+                    data-test-id="copy-button">Copy</button>
+            <button type="button"
+                    class="g4-console-drawer__tool"
+                    title="Clear output"
+                    data-part="clear"
+                    data-test-id="clear-button">Clear</button>
+        </span>
+    </div>
+    <div class="g4-console-drawer__body"
+         data-part="body"
+         data-test-id="body"
+         aria-live="polite"
+         role="log"></div>
+</template>

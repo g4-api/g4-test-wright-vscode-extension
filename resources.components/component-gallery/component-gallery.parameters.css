@@ -1,0 +1,13 @@
+/*
+ * Component gallery parameters, mapped to VS Code theme variables.
+ */
+:root {
+    --component-gallery-background: var(--vscode-editor-background);
+    --component-gallery-border: var(--vscode-panel-border);
+    --component-gallery-button-background: var(--vscode-button-background);
+    --component-gallery-button-foreground: var(--vscode-button-foreground);
+    --component-gallery-card-background: var(--vscode-sideBar-background, var(--vscode-editor-background));
+    --component-gallery-font-family: var(--vscode-font-family, 'Segoe UI', system-ui, sans-serif);
+    --component-gallery-foreground: var(--vscode-foreground);
+    --component-gallery-muted-foreground: var(--vscode-descriptionForeground);
+}

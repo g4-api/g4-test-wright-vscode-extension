@@ -1,0 +1,113 @@
+/*
+ * G4 tag filter layout: a full-width trigger and a panel with search, tools, and a scrolling list.
+ */
+g4-tag-filter {
+    display: block;
+    position: relative;
+    min-width: 0;
+}
+
+.g4-tag-filter__trigger {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 6px 10px;
+    border-width: 1px;
+    border-style: solid;
+    font-size: 12.5px;
+    text-align: left;
+}
+
+.g4-tag-filter__label {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.g4-tag-filter__caret {
+    display: flex;
+    flex-shrink: 0;
+    width: 11px;
+    height: 11px;
+}
+
+.g4-tag-filter__caret svg {
+    width: 100%;
+    height: 100%;
+}
+
+.g4-tag-filter__panel {
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    left: 0;
+    z-index: 60;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 8px;
+    border-width: 1px;
+    border-style: solid;
+}
+
+.g4-tag-filter__panel[hidden] {
+    display: none;
+}
+
+.g4-tag-filter__search {
+    width: 100%;
+    padding: 5px 8px;
+    border-width: 1px;
+    border-style: solid;
+    font-size: 12.5px;
+}
+
+.g4-tag-filter__actions {
+    display: flex;
+    gap: 8px;
+}
+
+.g4-tag-filter__tool {
+    padding: 2px 0;
+    border: 0;
+    font-size: 12px;
+}
+
+.g4-tag-filter__options {
+    display: flex;
+    flex-direction: column;
+    max-height: 240px;
+    overflow: auto;
+}
+
+.g4-tag-filter__option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 6px;
+}
+
+.g4-tag-filter__option-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    font-size: 12.5px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.g4-tag-filter__option-count {
+    flex-shrink: 0;
+    min-width: 20px;
+    padding: 0 6px;
+    font-size: 11px;
+    text-align: center;
+}
+
+.g4-tag-filter__empty {
+    padding: 6px;
+    font-size: 12px;
+}

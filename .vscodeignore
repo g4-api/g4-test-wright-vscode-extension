@@ -1,0 +1,25 @@
+# Sources and tooling (the extension ships the webpack bundle in dist/)
+.github/**
+.vscode/**
+.vscode-test/**
+src/**
+out/**
+tsconfig.json
+eslint.config.mjs
+webpack.config.js
+.gitignore
+**/*.vsix
+**/.eslintcache
+
+# Development notes (visual test plan and results); user docs are in resources.docs
+docs/**
+
+# Source maps of the bundle
+dist/**/*.map
+
+# Runtime dependencies (the Allure 3 CLI) ship; their maps, typings, and docs do not
+node_modules/**/*.map
+node_modules/**/*.d.ts
+node_modules/**/*.d.mts
+node_modules/**/*.d.cts
+node_modules/**/*.md

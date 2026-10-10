@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy"
+          content="default-src 'none'; img-src {{$ csp.source }} data:; font-src {{$ csp.source }}; style-src {{$ csp.source }} 'unsafe-inline'; script-src {{$ csp.source }};">
+    <meta name="g4-components" content="g4-run-summary">
+    <title>G4 Test Wright Run Report</title>
+    {{$ components.styles }}
+    <link rel="stylesheet" href="{{$ component.style.uri }}">
+</head>
+
+<body>
+    <main class="run-report" data-test-id="run-report-page">
+        <g4-run-summary id="run-summary" test-id="run-report"></g4-run-summary>
+    </main>
+    <textarea id="g4-data"
+              class="run-report-data"
+              data-test-id="run-report-injected-data"
+              aria-label="Run report data">{{$ page.data }}</textarea>
+
+    {{$ components.templates }}
+    {{$ components.scripts }}
+    <script src="{{$ component.script.uri }}"></script>
+</body>
+
+</html>

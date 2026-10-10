@@ -1,0 +1,19 @@
+/*
+ * G4 environment picker parameters, mapped to VS Code theme variables.
+ */
+:root {
+    --g4-environment-picker-background: var(--vscode-input-background);
+    --g4-environment-picker-border: var(--vscode-input-border, var(--vscode-panel-border));
+    --g4-environment-picker-focus-border: var(--vscode-focusBorder);
+    --g4-environment-picker-foreground: var(--vscode-input-foreground);
+    --g4-environment-picker-hover-background: var(--vscode-list-hoverBackground);
+    --g4-environment-picker-label-foreground: var(--vscode-descriptionForeground);
+    --g4-environment-picker-missing-foreground: var(--vscode-editorWarning-foreground, #cca700);
+    --g4-environment-picker-panel-background: var(--vscode-editorWidget-background, var(--vscode-editor-background));
+    --g4-environment-picker-panel-border: var(--vscode-editorWidget-border, var(--vscode-panel-border));
+    --g4-environment-picker-panel-shadow: 0 4px 16px var(--vscode-widget-shadow, rgba(0, 0, 0, .35));
+    --g4-environment-picker-radius: 2px;
+    --g4-environment-picker-selected-background: var(--vscode-list-activeSelectionBackground);
+    --g4-environment-picker-selected-foreground: var(--vscode-list-activeSelectionForeground);
+    --g4-environment-picker-tool-foreground: var(--vscode-textLink-foreground);
+}

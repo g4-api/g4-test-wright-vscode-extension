@@ -1,0 +1,8 @@
+/*
+ * Run report page visual language: the editor background and font.
+ */
+body {
+    background-color: var(--run-report-background);
+    color: var(--run-report-foreground);
+    font-family: var(--run-report-font-family);
+}

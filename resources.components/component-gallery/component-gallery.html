@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy"
+          content="default-src 'none'; img-src {{$ csp.source }} data:; font-src {{$ csp.source }}; style-src {{$ csp.source }} 'unsafe-inline'; script-src {{$ csp.source }};">
+    <meta name="g4-components" content="g4-accordion g4-console-drawer g4-date-picker g4-empty-state g4-environment-picker g4-modal g4-run-summary g4-select g4-tag-filter g4-toggle">
+    <title>Test Wright Components</title>
+    {{$ components.styles }}
+    <link rel="stylesheet" href="{{$ component.style.uri }}">
+</head>
+
+<body>
+    <main class="gallery" data-test-id="component-gallery-page">
+        <h1>Test Wright components</h1>
+        <p class="gallery-hint">Every g4-* component the Test Wright pages use, with sample data. Switch the VS Code color theme to check light, dark, and high-contrast. Events appear in the log at the bottom.</p>
+
+        <section class="gallery-card" data-test-id="gallery-environment-picker">
+            <h2>g4-environment-picker</h2>
+            <g4-environment-picker id="sample-environment-picker" test-id="sample-environment-picker"></g4-environment-picker>
+        </section>
+
+        <section class="gallery-card" data-test-id="gallery-tag-filter">
+            <h2>g4-tag-filter</h2>
+            <g4-tag-filter id="sample-tag-filter" test-id="sample-tag-filter"></g4-tag-filter>
+        </section>
+
+        <section class="gallery-card" data-test-id="gallery-date-picker">
+            <h2>g4-date-picker</h2>
+            <g4-date-picker id="sample-date-picker" test-id="sample-date-picker"></g4-date-picker>
+            <g4-date-picker allow-past test-id="sample-date-picker-past" placeholder="Past dates allowed"></g4-date-picker>
+        </section>
+
+        <section class="gallery-card" data-test-id="gallery-toggles">
+            <h2>g4-toggle (reused from G4 Studio)</h2>
+            <g4-toggle id="sample-toggle" label="Parallel Tests" hint="One worker per CPU" test-id="sample-toggle"></g4-toggle>
+            <g4-toggle label="Collect" checked test-id="sample-toggle-checked"></g4-toggle>
+        </section>
+
+        <section class="gallery-card" data-test-id="gallery-empty-states">
+            <h2>g4-empty-state</h2>
+            <div class="gallery-row">
+                <g4-empty-state icon="folder" heading="No bots folder selected" subtitle="Choose the bots folder to begin." test-id="sample-empty-folder"></g4-empty-state>
+                <g4-empty-state icon="search" heading="No bots discovered" subtitle="Run Discover Bots." test-id="sample-empty-search"></g4-empty-state>
+                <g4-empty-state icon="filter" heading="No bots match" subtitle="Adjust the filters." test-id="sample-empty-filter"></g4-empty-state>
+                <g4-empty-state icon="plan" heading="Plan is empty" subtitle="Drag bots here." test-id="sample-empty-plan"></g4-empty-state>
+            </div>
+        </section>
+
+        <section class="gallery-card gallery-card--tall" data-test-id="gallery-accordion">
+            <h2>g4-accordion</h2>
+            <g4-accordion id="sample-accordion" test-id="sample-accordion">
+                <div data-section-id="first" data-heading="First Section"><p class="gallery-body">Drag the sash below to move height between open sections.</p></div>
+                <div data-section-id="second" data-heading="Second Section"><p class="gallery-body">Click a header to collapse or expand it.</p></div>
+                <div data-section-id="third" data-heading="Third Section"><p class="gallery-body">Collapsed sections keep only their header.</p></div>
+            </g4-accordion>
+        </section>
+
+        <section class="gallery-card gallery-card--tall" data-test-id="gallery-run-summary">
+            <h2>g4-run-summary</h2>
+            <g4-run-summary id="sample-run-summary" test-id="sample-run-summary"></g4-run-summary>
+        </section>
+
+        <section class="gallery-card" data-test-id="gallery-modal">
+            <h2>g4-modal (reused from G4 Studio)</h2>
+            <button type="button" id="open-modal" class="gallery-button" data-test-id="gallery-open-modal-button">Open modal</button>
+        </section>
+
+        <section class="gallery-card gallery-card--console" data-test-id="gallery-console">
+            <h2>g4-console-drawer (event log)</h2>
+            <g4-console-drawer id="sample-console" test-id="sample-console"></g4-console-drawer>
+        </section>
+    </main>
+
+    {{$ components.templates }}
+    {{$ components.scripts }}
+    <script src="{{$ component.script.uri }}"></script>
+</body>
+
+</html>

@@ -1,0 +1,12 @@
+/*
+ * G4 accordion parameters, mapped to VS Code theme variables.
+ */
+:root {
+    --g4-accordion-border: var(--vscode-sideBarSectionHeader-border, var(--vscode-panel-border));
+    --g4-accordion-caret-transition: transform .12s;
+    --g4-accordion-header-background: var(--vscode-sideBarSectionHeader-background, transparent);
+    --g4-accordion-header-foreground: var(--vscode-sideBarSectionHeader-foreground, var(--vscode-foreground));
+    --g4-accordion-header-hover-background: var(--vscode-list-hoverBackground);
+    --g4-accordion-focus-border: var(--vscode-focusBorder);
+    --g4-accordion-sash-active-background: var(--vscode-sash-hoverBorder, var(--vscode-focusBorder));
+}

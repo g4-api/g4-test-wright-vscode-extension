@@ -1,0 +1,78 @@
+<!--
+    G4 date picker: a "YYYY-MM-DD HH:MM" text box with a calendar button that opens a month grid
+    and a time row. See g4-date-picker.js.
+-->
+<template id="g4-date-picker-template">
+    <div class="g4-date-picker__field" data-part="field">
+        <input type="text"
+               class="g4-date-picker__input"
+               autocomplete="off"
+               spellcheck="false"
+               data-part="input"
+               data-test-id="input">
+        <button type="button"
+                class="g4-date-picker__toggle"
+                title="Pick a date and time"
+                data-part="toggle"
+                data-test-id="toggle-button"
+                aria-haspopup="dialog"
+                aria-label="Pick a date and time">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" aria-hidden="true"><path fill="currentColor" d="M224 64C241.7 64 256 78.3 256 96L256 128L384 128L384 96C384 78.3 398.3 64 416 64C433.7 64 448 78.3 448 96L448 128L480 128C515.3 128 544 156.7 544 192L544 480C544 515.3 515.3 544 480 544L160 544C124.7 544 96 515.3 96 480L96 192C96 156.7 124.7 128 160 128L192 128L192 96C192 78.3 206.3 64 224 64zM160 256L160 480L480 480L480 256L160 256z"/></svg>
+        </button>
+    </div>
+    <div class="g4-date-picker__popup"
+         hidden
+         data-part="popup"
+         data-test-id="popup"
+         role="dialog">
+        <div class="g4-date-picker__month-bar">
+            <button type="button"
+                    class="g4-date-picker__nav"
+                    title="Previous month"
+                    data-part="previous"
+                    data-test-id="previous-month-button"
+                    aria-label="Previous month">&#8249;</button>
+            <span class="g4-date-picker__month" data-part="month" data-test-id="month-label"></span>
+            <button type="button"
+                    class="g4-date-picker__nav"
+                    title="Next month"
+                    data-part="next"
+                    data-test-id="next-month-button"
+                    aria-label="Next month">&#8250;</button>
+        </div>
+        <div class="g4-date-picker__weekdays" data-part="weekdays"></div>
+        <div class="g4-date-picker__days" data-part="days" data-test-id="days" role="grid"></div>
+        <div class="g4-date-picker__time-row">
+            <span class="g4-date-picker__time-label">Time</span>
+            <input type="number"
+                   class="g4-date-picker__time"
+                   min="0"
+                   max="23"
+                   data-part="hour"
+                   data-test-id="hour-input"
+                   aria-label="Hour">
+            <span>:</span>
+            <input type="number"
+                   class="g4-date-picker__time"
+                   min="0"
+                   max="59"
+                   data-part="minute"
+                   data-test-id="minute-input"
+                   aria-label="Minute">
+        </div>
+        <div class="g4-date-picker__actions">
+            <button type="button"
+                    class="g4-date-picker__action"
+                    data-part="clear"
+                    data-test-id="clear-button">Clear</button>
+            <button type="button"
+                    class="g4-date-picker__action"
+                    data-part="now"
+                    data-test-id="now-button">Now</button>
+            <button type="button"
+                    class="g4-date-picker__action g4-date-picker__action--primary"
+                    data-part="apply"
+                    data-test-id="apply-button">Apply</button>
+        </div>
+    </div>
+</template>

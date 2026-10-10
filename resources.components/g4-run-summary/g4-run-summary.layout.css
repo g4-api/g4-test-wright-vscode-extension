@@ -1,0 +1,143 @@
+/*
+ * G4 run summary layout: header, tally strip, tool row, and a scrolling list of bot cards.
+ */
+g4-run-summary {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.g4-run-summary__head {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 12px 16px 8px;
+}
+
+.g4-run-summary__title-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.g4-run-summary__title {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    font-size: 15px;
+    font-weight: 700;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.g4-run-summary__meta {
+    font-size: 12px;
+}
+
+.g4-run-summary__tally {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    padding: 8px 16px;
+    border-top-width: 1px;
+    border-top-style: solid;
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+    font-size: 12.5px;
+}
+
+.g4-run-summary__tally strong {
+    margin-right: 2px;
+}
+
+.g4-run-summary__tools {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 10px 16px;
+}
+
+.g4-run-summary__tool {
+    padding: 4px 10px;
+    border: 0;
+    font-size: 12px;
+}
+
+.g4-run-summary__notice {
+    margin: 0 16px 8px;
+    padding: 6px 10px;
+    font-size: 12px;
+}
+
+.g4-run-summary__notice[hidden] {
+    display: none;
+}
+
+.g4-run-summary__cases {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 0;
+    padding: 4px 16px 16px;
+    overflow: auto;
+}
+
+.g4-run-summary__case {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 9px 11px;
+    border-width: 1px;
+    border-style: solid;
+}
+
+.g4-run-summary__case-top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.g4-run-summary__case-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.g4-run-summary__case-time,
+.g4-run-summary__case-detail {
+    font-size: 11px;
+}
+
+.g4-run-summary__case-message {
+    max-height: 160px;
+    margin: 2px 0 0;
+    padding: 6px 8px;
+    overflow: auto;
+    font-size: 11.5px;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.g4-run-summary__badge {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    min-width: 70px;
+    padding: 2px 8px;
+    border-width: 1px;
+    border-style: solid;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.g4-run-summary__empty {
+    padding: 24px;
+    font-size: 13px;
+    text-align: center;
+}

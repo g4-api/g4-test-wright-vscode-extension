@@ -1,0 +1,38 @@
+/*
+ * G4 accordion visual language: VS Code section headers with a rotating caret and a sash that
+ * highlights while dragged.
+ */
+.g4-accordion__header {
+    background-color: var(--g4-accordion-header-background);
+    border-top-color: var(--g4-accordion-border);
+    color: var(--g4-accordion-header-foreground);
+    font-family: inherit;
+    cursor: pointer;
+}
+
+.g4-accordion__header:hover {
+    background-color: var(--g4-accordion-header-hover-background);
+}
+
+.g4-accordion__header:focus-visible {
+    outline: 1px solid var(--g4-accordion-focus-border);
+    outline-offset: -1px;
+}
+
+.g4-accordion__caret {
+    transform: rotate(90deg);
+    transition: var(--g4-accordion-caret-transition);
+}
+
+.g4-accordion__section--collapsed .g4-accordion__caret {
+    transform: rotate(0deg);
+}
+
+.g4-accordion__sash {
+    cursor: row-resize;
+}
+
+.g4-accordion__sash:hover,
+.g4-accordion__sash--dragging {
+    background-color: var(--g4-accordion-sash-active-background);
+}
