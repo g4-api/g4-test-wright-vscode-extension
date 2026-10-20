@@ -129,7 +129,7 @@ export class RepositoryService {
         await fs.writeFile(filePath, JSON.stringify(plan, null, 4), 'utf8');
     }
 
-    // Finds files whose name matches, recursively, skipping hidden folders and Allure output.
+    // Finds files whose name matches, recursively, skipping node_modules and Allure output.
     private static async findFiles(folderPath: string, isMatch: (name: string) => boolean, depth: number): Promise<string[]> {
         if (depth > MAXIMUM_SCAN_DEPTH) {
             return [];

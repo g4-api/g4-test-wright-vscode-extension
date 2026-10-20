@@ -28,7 +28,7 @@ function addDroppedTests(event) {
     } else if (payload.kind === 'report') {
         loadReportIntoPlan(payload.path);
     } else if (payload.kind === 'schedulePlan') {
-        loadSchedulePlan(payload.items, payload.label, payload.testParallel);
+        loadSchedulePlan(payload.schedule);
     } else if (payload.kind === 'plan') {
         movePlanItem(payload.uid, getPlanDropIndex(event.clientY));
     } else if (payload.kind === 'tests') {
@@ -46,6 +46,9 @@ function addDroppedTests(event) {
 function addTestsToPlan(ids, atIndex = state.plan.length) {
     state.plan.splice(atIndex, 0, ...ids.map(newPlanItem));
     showApp();
+
+    // Read the new bots' columns, so items added after iterations exist get their rows.
+    void updateDataColumns();
 }
 
 /**
@@ -145,6 +148,8 @@ function newPlanItem(testId) {
 
     return {
         uid: runtime.nextUid++,
+        key: newItemKey(),
+        data: [],
         testId,
         status: 'not-run',
         checked: true,
@@ -188,6 +193,7 @@ function showButtons() {
     elements['btn-clear-plan'].disabled = state.plan.length === 0 || isRunning;
     elements['btn-export-plan'].disabled = state.plan.length === 0;
     elements['btn-save-plan-repo'].disabled = state.plan.length === 0;
+    elements['btn-edit-iterations'].disabled = state.plan.length === 0;
     elements['btn-clear-tree'].disabled = state.tests.length === 0 || isRunning;
     elements['btn-schedule'].disabled = !hasChecked || !isScheduleValid || isScheduleFull;
     elements['btn-stop'].disabled = runtime.activeRunIds.size === 0;
@@ -203,6 +209,7 @@ function showCounts() {
     elements['count-visible'].textContent = getVisibleTests().length;
     elements['count-plan'].textContent = state.plan.length;
     elements['count-checked'].textContent = getCheckedPlanItems().length;
+    elements['count-iterations'].textContent = state.iterations.length;
 
     // The label after the plan count follows it: "1 item", "2 items".
     elements['count-plan'].nextSibling.textContent = state.plan.length === 1 ? ' item' : ' items';
@@ -285,17 +292,65 @@ function showPlanRow(item, index) {
     const isRunning = item.status === 'running';
     const suiteText = item.suite ? `${item.suite}/` : '';
 
+    // Builds the data button of a bot that reads data: the table icon and the column count, a
+    // warning while an included iteration has an empty value, and a click that opens the editor
+    // at this item's columns. Static bots and bots not read yet get no button (null).
+    const newDataButton = () => {
+        const description = getBotData(item);
+        const isStatic = !description || description.columns.length === 0;
+
+        if (isStatic) {
+            return null;
+        }
+
+        // Count the empty values of included iterations, so the row warns before a run is refused.
+        const emptyCount = getDataProblems([item]).length;
+        const hasEmptyValues = emptyCount > 0;
+        const columnsText = description.columns.join(', ');
+        const emptyText = hasEmptyValues ? `\n${emptyCount} empty value(s) to fill.` : '';
+        const button = document.createElement('button');
+
+        button.type = 'button';
+        button.className = 'plan-data';
+        button.classList.toggle('plan-data--warning', hasEmptyValues);
+        button.title = `Edit this item's data (columns: ${columnsText})${emptyText}`;
+        button.dataset.testId = `plan-data-button-${index + 1}`;
+        button.setAttribute('aria-label', `Edit the data of plan item ${index + 1}`);
+        // The table icon (theme-colored through currentColor), then the column count.
+        const tableIcon =
+            '<svg viewBox="0 0 640 640" width="13" height="13" aria-hidden="true"><path fill="currentColor" d="' +
+            'M96 160C96 124.7 124.7 96 160 96L480 96C515.3 96 544 124.7 544 160L544 480C544 515.3 515.3 544 480 544L160 544C124.7 544 ' +
+            '96 515.3 96 480L96 160zM160 160L160 224L224 224L224 160L160 160zM480 160L288 160L288 224L480 224L480 160zM160 288L160 ' +
+            '352L224 352L224 288L160 288zM480 288L288 288L288 352L480 352L480 288zM160 416L160 480L224 480L224 416L160 416zM480 416L288 ' +
+            '416L288 480L480 480L480 416z"/></svg>';
+
+        button.innerHTML = `${tableIcon}<span>${description.columns.length}</span>`;
+
+        // Open the iterations editor at this item's columns; the row itself stays draggable.
+        button.addEventListener('click', () => void openDataEditor(item.key));
+
+        return button;
+    };
+
     row.className = 'plan-row';
     row.draggable = true;
     row.dataset.uid = item.uid;
     row.dataset.testId = `plan-row-${index + 1}`;
     row.innerHTML =
         '<span class="plan-handle" title="Drag to reorder">&#8285;</span>' +
-        '<input type="checkbox" class="plan-check" aria-label="Include in the run">' +
+        '<g4-toggle class="plan-include" title="Include in the run" compact></g4-toggle>' +
         `<span class="plan-order">${index + 1}</span>` +
         '<div class="plan-main"><span class="plan-name"></span><span class="plan-path"></span></div>' +
         `<span class="badge badge-${getEscapedHtml(item.status)}"${isRunning ? ' title="Running"' : ''}></span>` +
         '<button type="button" class="plan-remove" title="Remove" aria-label="Remove from plan">&times;</button>';
+
+    // A bot that reads data gets a data button before its status: it opens the iterations editor at
+    // this item's columns, and turns to a warning when an included iteration has an empty value.
+    const dataButton = newDataButton();
+
+    if (dataButton !== null) {
+        row.querySelector('.badge').before(dataButton);
+    }
 
     row.querySelector('.plan-name').textContent = item.name || item.testId;
     row.querySelector('.plan-path').textContent = `${suiteText}${item.file.split('/').pop()}`;
@@ -309,11 +364,15 @@ function showPlanRow(item, index) {
         badge.textContent = getStatusLabel(item.status);
     }
 
-    const check = row.querySelector('.plan-check');
+    // The Include switch renders when the row joins the page, so its name, test id, and state are
+    // set as attributes first; flipping it includes or leaves out the item and saves the plan.
+    const includeToggle = row.querySelector('.plan-include');
 
-    check.checked = item.checked;
-    check.addEventListener('change', () => {
-        item.checked = check.checked;
+    includeToggle.setAttribute('aria-label', `Include plan item ${index + 1} in the run`);
+    includeToggle.setAttribute('test-id', `plan-include-toggle-${index + 1}`);
+    includeToggle.value = item.checked;
+    includeToggle.addEventListener('g4-input', (event) => {
+        item.checked = event.detail.value;
         showCounts();
         showButtons();
         requestSave();

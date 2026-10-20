@@ -15,10 +15,11 @@ import { existsSync } from 'node:fs';
 import { AllureConverter } from '../services/allure-converter';
 import { AllureReportService } from '../services/allure-report-service';
 import { BotsDiscoveryService } from '../services/bots-discovery-service';
+import { DataSetService } from '../services/data-set-service';
 import { G4Client } from '../clients/g4-client';
 import { Logger } from '../logging/logger';
 import { MAXIMUM_SCHEDULES, SchedulerService } from '../services/scheduler-service';
-import { PlanFile, RunRequest } from '../models/test-wright-models';
+import { DataFile, PlanFile, RunRequest } from '../models/test-wright-models';
 import { RepositoryService } from '../services/repository-service';
 import { RunReportProvider } from './run-report-provider';
 import { RunService } from '../services/run-service';
@@ -113,6 +114,14 @@ export class TestWrightPanelProvider implements vscode.Disposable {
     }
 
     /**
+     * Tells every open panel that project files changed (bots or environments were added), so
+     * each one discovers its bots and reads its environments again.
+     */
+    public updateProject(): void {
+        this._panels.forEach((_, panel) => this.postEvent(panel, 'project:changed', null));
+    }
+
+    /**
      * Reveals the last active panel, or opens one when none is open.
      */
     public show(): void {
@@ -198,6 +207,9 @@ export class TestWrightPanelProvider implements vscode.Disposable {
             },
             'bots:find': async (payload) => BotsDiscoveryService.findTests(payload.folderPath),
             'bots:open': async (payload) => this.openBot(payload.path),
+            'data:find': async (payload) => ({ bots: await DataSetService.findBotData(Array.isArray(payload?.paths) ? payload.paths : []) }),
+            'data:load': async () => this.loadData(),
+            'data:save': async (payload) => this.saveDataAs(payload.data, payload.defaultName),
             'environments:find': async () => {
                 const folderPath = Utilities.getEnvironmentsFolder();
 
@@ -296,6 +308,24 @@ export class TestWrightPanelProvider implements vscode.Disposable {
         };
     }
 
+    // Native open dialog for an iterations data file; the page matches its items to the plan.
+    private async loadData(): Promise<any> {
+        const picked = await vscode.window.showOpenDialog({
+            canSelectMany: false,
+            defaultUri: vscode.Uri.file(Utilities.getPlansFolder() || Utilities.getWorkspaceFolder() || os.homedir()),
+            filters: { 'Test Wright data': ['json'] },
+            title: 'Import iterations data'
+        });
+
+        if (picked === undefined || picked.length === 0) {
+            return { canceled: true };
+        }
+
+        const data = await DataSetService.readDataFile(picked[0].fsPath);
+
+        return data === null ? { error: 'Not a valid Test Wright data file.' } : { filePath: picked[0].fsPath, data };
+    }
+
     // Native open dialog for a plan file.
     private async loadPlan(): Promise<any> {
         const picked = await vscode.window.showOpenDialog({
@@ -380,6 +410,24 @@ export class TestWrightPanelProvider implements vscode.Disposable {
             this._logger.error(`Request '${message.type}' failed.`, undefined, error);
             this.postMessage(panel, { kind: 'response', id: message.id, error: `${error?.message ?? error}` });
         }
+    }
+
+    // Native save dialog for the iterations data of the plan.
+    private async saveDataAs(data: DataFile, defaultName: string): Promise<any> {
+        const folder = Utilities.getPlansFolder() || Utilities.getWorkspaceFolder() || os.homedir();
+        const picked = await vscode.window.showSaveDialog({
+            defaultUri: vscode.Uri.file(path.join(folder, defaultName)),
+            filters: { 'Test Wright data': ['json'] },
+            title: 'Export iterations data'
+        });
+
+        if (picked === undefined) {
+            return { canceled: true };
+        }
+
+        await DataSetService.writeDataFile(picked.fsPath, data);
+
+        return { filePath: picked.fsPath };
     }
 
     // Native save dialog for a plan file.

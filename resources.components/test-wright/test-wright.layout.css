@@ -525,9 +525,8 @@ body {
     line-height: 1;
 }
 
-.plan-check {
+.plan-include {
     flex-shrink: 0;
-    margin: 0;
 }
 
 .plan-order {
@@ -570,6 +569,20 @@ body {
     padding: 0;
     border: 0;
     font-size: 15px;
+    line-height: 1;
+}
+
+/* Data button of a plan row whose bot reads {{$ columns.Name }} values: icon and column count. */
+.plan-data {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 4px;
+    height: 20px;
+    padding: 0 6px;
+    border-width: 1px;
+    border-style: solid;
+    font-size: 11px;
     line-height: 1;
 }
 
@@ -731,6 +744,8 @@ body {
     justify-content: space-between;
     height: 26px;
     padding: 0 6px 0 10px;
+    border-top-width: 1px;
+    border-top-style: solid;
 }
 
 .statusbar-info {

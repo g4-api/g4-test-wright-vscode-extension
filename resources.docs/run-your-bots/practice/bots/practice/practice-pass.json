@@ -1,0 +1,114 @@
+{
+    "authentication": {
+        "token": "",
+        "password": "",
+        "username": ""
+    },
+    "driverParameters": {
+        "capabilities": {
+            "alwaysMatch": {
+                "browserName": "Uia",
+                "uia:options": {
+                    "label": "practice"
+                }
+            }
+        },
+        "driver": "SimulatorDriver",
+        "driverBinaries": ".",
+        "firstMatch": [
+            {}
+        ]
+    },
+    "reference": {
+        "id": "practice-pass",
+        "name": "practice-pass",
+        "description": "",
+        "tags": [
+            "smoke"
+        ]
+    },
+    "settings": {
+        "automationSettings": {
+            "loadTimeout": 60000,
+            "maxParallel": 1,
+            "returnStructuredResponse": true,
+            "searchTimeout": 15000
+        },
+        "screenshotsSettings": {
+            "outputFolder": ".",
+            "convertToBase64": true,
+            "returnScreenshots": true,
+            "onExceptionOnly": false
+        },
+        "pluginsSettings": {
+            "externalRepositories": [],
+            "servers": {}
+        },
+        "exceptionsSettings": {
+            "returnExceptions": true
+        },
+        "environmentsSettings": {
+            "defaultEnvironment": "SystemParameters",
+            "returnEnvironment": true
+        }
+    },
+    "stages": [
+        {
+            "reference": {
+                "id": "practicestage1",
+                "name": "G4™ Default Stage",
+                "description": "A container that holds jobs."
+            },
+            "jobs": [
+                {
+                    "reference": {
+                        "id": "practicejob1",
+                        "name": "G4™ Default Job",
+                        "description": "A container that holds actions."
+                    },
+                    "rules": [
+                        {
+                            "$type": "Action",
+                            "pluginName": "WaitFlow",
+                            "reference": {
+                                "id": "practice0001"
+                            },
+                            "capabilities": {
+                                "displayName": "Wait For The Page"
+                            },
+                            "locator": "Xpath",
+                            "argument": "{{$ --Condition:ElementExists --Timeout:5000}}",
+                            "onElement": "//positive"
+                        },
+                        {
+                            "$type": "Action",
+                            "pluginName": "Assert",
+                            "reference": {
+                                "id": "practice0002"
+                            },
+                            "capabilities": {
+                                "displayName": "Check The Page Title"
+                            },
+                            "locator": "Xpath",
+                            "argument": "{{$ --Condition:ElementAttribute --Expected:mock attribute --Operator:Match}}",
+                            "onAttribute": "Name",
+                            "onElement": "//positive",
+                            "regularExpression": "(?si).*"
+                        },
+                        {
+                            "$type": "Action",
+                            "pluginName": "CloseBrowser",
+                            "reference": {
+                                "id": "practice0003"
+                            },
+                            "capabilities": {
+                                "displayName": "Close Browser"
+                            },
+                            "locator": "Xpath"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

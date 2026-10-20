@@ -1,25 +1,44 @@
 /*
  * Runs bots against the G4 engine and records the run.
  *
- * A run executes its bots one after another, or with a worker pool sized to the CPU count when
- * Parallel Tests is on. Each finished bot is saved as a Base64 .g4rpt (the G4 Studio report format)
- * inside the run folder `<reports>/<yyyy-MM-dd-HHmmssfff>/`, next to run.json. When Allure
- * collection is on, the results go to `<reports>/allure-<run>/results/` beside the run folder.
+ * A run executes its plan items one after another, or with a worker pool sized to the CPU count when
+ * Parallel Tests is on. Every plan item runs on its own, even when several items point at the same
+ * bot. When the plan has iterations, the whole suite runs once per included iteration, and each item
+ * sends its row of that iteration as a one-row data source. Each finished execution is saved as a
+ * Base64 .g4rpt (the G4 Studio report format) inside the run folder
+ * `<reports>/<yyyy-MM-dd-HHmmssfff>/`, next to run.json. When Allure collection is on, the results go
+ * to `<reports>/allure-<run>/results/` beside the run folder.
  */
 import * as fs from 'node:fs/promises';
 import * as os from 'node:os';
-import { existsSync } from 'node:fs';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
+
+import { existsSync } from 'node:fs';
+
+import { G4Client } from '../clients/g4-client';
+
+import { JsonReader } from '../extensions/json-reader';
+import { Utilities } from '../extensions/utilities';
+
+import { Logger } from '../logging/logger';
+
+import {
+    RunEvent,
+    RunRecord,
+    RunRequest,
+    RunSummary,
+    RunTally,
+    RunTest,
+    TestRecord,
+    TestStatus
+} from '../models/test-wright-models';
+
 import { AllureConverter } from './allure-converter';
 import { BotRequestBuilder } from './bot-request-builder';
 import { BotsDiscoveryService } from './bots-discovery-service';
-import { G4Client } from '../clients/g4-client';
-import { JsonReader } from '../extensions/json-reader';
-import { Logger } from '../logging/logger';
+import { DataSetService } from './data-set-service';
 import { ResultEvaluator } from './result-evaluator';
-import { RunEvent, RunRecord, RunRequest, RunSummary, RunTally, TestRecord, TestStatus } from '../models/test-wright-models';
-import { Utilities } from '../extensions/utilities';
 
 /**
  * Executes runs and tracks the active ones so they can be stopped.
@@ -85,9 +104,17 @@ export class RunService implements vscode.Disposable {
         const manifest = Utilities.updateManifest();
         const engine = Utilities.getEngineEndpoint();
         const client = new G4Client(engine);
-        const records: TestRecord[] = request.tests.map((test) => RunService.newTestRecord(test));
         const usedReportNames = new Set<string>();
         const log = (text: string, kind = 'muted'): void => this._onRunEvent.fire({ runId: request.runId, type: 'log', text, kind });
+
+        // Name the run the same way in every console line: its folder name, plus the schedule label for
+        // a scheduled run, so the start, finish, cancel, and failure lines of one run are easy to match.
+        const runTitle = RunService.getRunTitle(runName, request);
+
+        // One pass per included iteration (or one pass without data), and one record per plan item in
+        // each pass, so every item runs on its own, even when several items point at the same bot.
+        const passes = RunService.getPasses(request);
+        const records: TestRecord[] = passes.flatMap((pass) => request.tests.map((test) => RunService.newTestRecord(test, pass)));
 
         this._activeRuns.set(request.runId, runEntry);
         this._onActiveRunsChanged.fire(this._activeRuns.size);
@@ -95,24 +122,29 @@ export class RunService implements vscode.Disposable {
         try {
             await fs.mkdir(runFolder, { recursive: true });
 
-            const tag = request.scheduled ? ` (scheduled${request.label ? `: ${request.label}` : ''})` : '';
-            log(`Starting run ${runName}${tag}: ${records.length} bot(s) on ${engine}${request.environment ? `, environment '${request.environment}'` : ''}.`, 'info');
+            const iterationsText = passes[0]?.number > 0 ? `, ${passes.length} iteration(s)` : '';
+            log(`Starting run ${runTitle}: ${request.tests.length} plan item(s)${iterationsText} on ${engine}` +
+                `${request.environment ? `, environment '${request.environment}'` : ''}.`, 'info');
 
             await this.updateEnvironment(client, request.environment, log);
 
-            // Sequential runs use one worker; parallel runs use one worker per CPU (at most one per bot).
-            const workerCount = request.parallel ? Math.max(1, Math.min(os.availableParallelism(), records.length)) : 1;
-            let nextIndex = 0;
+            // Run the passes one after another: the next iteration starts only after every item of the
+            // current one finished, so the whole suite runs once per iteration, in plan order.
+            const context: TestContext = { client, manifest, runFolder, runEntry, usedReportNames, log };
 
-            const runWorker = async (): Promise<void> => {
-                while (nextIndex < records.length && !runEntry.canceled) {
-                    const record = records[nextIndex++];
-
-                    await this.invokeTest(request, record, { client, manifest, runFolder, runEntry, usedReportNames, log });
+            for (const pass of passes) {
+                if (runEntry.canceled) {
+                    break;
                 }
-            };
 
-            await Promise.all(Array.from({ length: workerCount }, runWorker));
+                if (pass.number > 0) {
+                    log(`Iteration ${pass.number} (${passes.indexOf(pass) + 1} of ${passes.length}).`, 'info');
+                }
+
+                const passRecords = records.filter((record) => (record.iteration ?? 0) === pass.number);
+
+                await this.invokeRecords(request, passRecords, context);
+            }
 
             // Bots never started because of Stop are recorded as canceled.
             for (const record of records.filter((candidate) => candidate.status === 'queued')) {
@@ -135,6 +167,7 @@ export class RunService implements vscode.Disposable {
                 engine,
                 botsFolder: request.folderPath,
                 parallel: request.parallel,
+                iterations: passes[0]?.number > 0 ? passes.length : 0,
                 status: RunService.getRunStatus(tally),
                 tally,
                 tests: records
@@ -151,12 +184,12 @@ export class RunService implements vscode.Disposable {
             // Canceled bots did not pass, so a run with cancellations is not shown as a clean pass.
             const kind = tally.failed + tally.broken > 0 ? 'fail' : (tally.warning + tally.canceled > 0 ? 'warn' : 'pass');
 
-            log(`Run ${runName} finished in ${seconds}s: ${tally.passed} passed, ${tally.failed} failed, ` +
+            log(`Run ${runTitle} finished in ${seconds}s: ${tally.passed} passed, ${tally.failed} failed, ` +
                 `${tally.warning} warning, ${tally.broken} broken, ${tally.canceled} canceled.`, kind);
             log(`Report: ${runFile}`, 'muted');
 
             if (runEntry.canceled) {
-                log('Run canceled.', 'warn');
+                log(`Run ${runTitle} canceled.`, 'warn');
             }
 
             return {
@@ -169,8 +202,8 @@ export class RunService implements vscode.Disposable {
                 runFile
             };
         } catch (error: any) {
-            this._logger.error(`Run ${runName} failed.`, undefined, error);
-            log(`Run failed: ${error?.message ?? error}`, 'fail');
+            this._logger.error(`Run ${runTitle} failed.`, undefined, error);
+            log(`Run ${runTitle} failed: ${error?.message ?? error}`, 'fail');
 
             return {
                 runId: request.runId,
@@ -227,15 +260,35 @@ export class RunService implements vscode.Disposable {
         return { runName, runFolder };
     }
 
-    // Runs one bot and fills its record.
+    // Runs the records of one pass with a worker pool: one worker for a sequential run, one per CPU
+    // (at most one per record) for a parallel run. Stop ends the pool; unstarted records stay queued.
+    private async invokeRecords(request: RunRequest, records: TestRecord[], context: TestContext): Promise<void> {
+        const workerCount = request.parallel ? Math.max(1, Math.min(os.availableParallelism(), records.length)) : 1;
+        let nextIndex = 0;
+
+        // Each worker takes the next record until none is left or the run was stopped.
+        const runWorker = async (): Promise<void> => {
+            while (nextIndex < records.length && !context.runEntry.canceled) {
+                const record = records[nextIndex++];
+
+                await this.invokeTest(request, record, context);
+            }
+        };
+
+        await Promise.all(Array.from({ length: workerCount }, runWorker));
+    }
+
+    // Runs one plan item in one pass and fills its record.
     private async invokeTest(request: RunRequest, record: TestRecord, context: TestContext): Promise<void> {
         const controller = new AbortController();
+        const recordLabel = RunService.getRecordLabel(record);
 
+        // Mark the record as running and tell the page which plan item (and iteration) started.
         context.runEntry.controllers.add(controller);
         record.status = 'running';
         record.start = Date.now();
-        this._onRunEvent.fire({ runId: request.runId, type: 'start', id: record.id });
-        context.log(`RUN   ${record.id}`, 'muted');
+        this._onRunEvent.fire({ runId: request.runId, type: 'start', id: record.key, iteration: record.iteration });
+        context.log(`RUN   ${recordLabel}`, 'muted');
 
         try {
             let bot: any;
@@ -250,6 +303,13 @@ export class RunService implements vscode.Disposable {
             }
 
             const automation = BotRequestBuilder.newRequest(bot, context.manifest, request.environment);
+
+            // Send this iteration's row of the item; the bot's current columns decide what is sent,
+            // and a static bot keeps its request unchanged. The record keeps the row actually sent.
+            if (record.values !== undefined) {
+                record.values = DataSetService.setDataSource(automation, bot, record.values);
+            }
+
             const result = await context.client.invokeAutomation(automation, controller.signal);
 
             if (result.aborted) {
@@ -267,7 +327,7 @@ export class RunService implements vscode.Disposable {
             }
 
             // Save the response in the G4 Studio report format (Base64 of the JSON).
-            record.reportFile = RunService.newReportFileName(record.id, context.usedReportNames);
+            record.reportFile = RunService.newReportFileName(record, context.usedReportNames);
             await fs.writeFile(path.join(context.runFolder, record.reportFile), Utilities.convertToBase64(JSON.stringify(result.data)), 'utf8');
 
             const evaluation = ResultEvaluator.evaluate(result.data);
@@ -276,6 +336,11 @@ export class RunService implements vscode.Disposable {
             record.message = evaluation.message;
             record.assertions = evaluation.assertions;
             record.exceptions = evaluation.exceptions;
+        } catch (error: any) {
+            // One bot's failure (for example its report cannot be written) never ends the run.
+            this._logger.error(`Bot ${recordLabel} failed.`, undefined, error);
+            record.status = 'broken';
+            record.message = `The engine answered, but the result could not be saved or evaluated: ${error?.message ?? error}`;
         } finally {
             record.stop = Date.now();
             record.duration = record.stop - record.start;
@@ -285,8 +350,16 @@ export class RunService implements vscode.Disposable {
             const label = RunService.getStatusText(record.status);
             const message = record.message ? ` - ${record.message}` : '';
 
-            this._onRunEvent.fire({ runId: request.runId, type: 'result', id: record.id, outcome: record.status, text: record.message });
-            context.log(`${label} ${record.id} (${seconds}s)${message}`, RunService.getLogKind(record.status));
+            // Report the result against the plan item and iteration, so duplicates of a bot stay apart.
+            this._onRunEvent.fire({
+                runId: request.runId,
+                type: 'result',
+                id: record.key,
+                iteration: record.iteration,
+                outcome: record.status,
+                text: record.message
+            });
+            context.log(`${label} ${recordLabel} (${seconds}s)${message}`, RunService.getLogKind(record.status));
         }
     }
 
@@ -368,9 +441,53 @@ export class RunService implements vscode.Disposable {
         return status.toUpperCase().padEnd(8, ' ');
     }
 
-    // Builds a unique report file name from a bot id: 'smoke/login.json' -> 'smoke.login.g4rpt'.
-    private static newReportFileName(id: string, usedNames: Set<string>): string {
-        const baseName = Utilities.newSafeFileName(id.replace(/\.(json|g4|g4bot)$/i, '').split('/').join('.'));
+    // Returns the passes of a run: one per included iteration, numbered like the editor rows, or one
+    // pass without data (number 0) when the plan has no iterations. A plan whose iterations are all
+    // excluded has no pass, so nothing runs.
+    private static getPasses(request: RunRequest): RunPass[] {
+        const iterations = request.iterations ?? [];
+
+        if (iterations.length === 0) {
+            return [{ number: 0, index: -1 }];
+        }
+
+        return iterations
+            .map((iteration, index) => ({ isIncluded: iteration?.include !== false, pass: { number: index + 1, index } }))
+            .filter((candidate) => candidate.isIncluded)
+            .map((candidate) => candidate.pass);
+    }
+
+    // Names a record in console lines: the bot id, its plan position, and its iteration, so
+    // duplicate items of the same bot can be told apart ('smoke/login.json #4, iteration 2').
+    private static getRecordLabel(record: TestRecord): string {
+        const positionText = record.position ? ` #${record.position}` : '';
+        const iterationText = record.iteration ? `, iteration ${record.iteration}` : '';
+
+        return `${record.id}${positionText}${iterationText}`;
+    }
+
+    // Names a run in console lines: the run folder name, then "(scheduled run 'label')" for a labeled
+    // scheduled run, "(scheduled run)" for an unlabeled one, and nothing more for a manual run.
+    private static getRunTitle(runName: string, request: RunRequest): string {
+        // A manual run is named by its folder alone.
+        if (request.scheduled !== true) {
+            return runName;
+        }
+
+        // Mark a scheduled run, and add its label when the user gave one.
+        const label = request.label?.trim() ?? '';
+        const labelText = label === '' ? '' : ` '${label}'`;
+
+        return `${runName} (scheduled run${labelText})`;
+    }
+
+    // Builds a unique report file name from the bot id, plan position, and iteration:
+    // 'smoke/login.json' at #4 in iteration 2 -> 'smoke.login.p4.i2.g4rpt'.
+    private static newReportFileName(record: TestRecord, usedNames: Set<string>): string {
+        const botName = record.id.replace(/\.(json|g4|g4bot)$/i, '').split('/').join('.');
+        const positionText = record.position ? `.p${record.position}` : '';
+        const iterationText = record.iteration ? `.i${record.iteration}` : '';
+        const baseName = Utilities.newSafeFileName(`${botName}${positionText}${iterationText}`);
         let fileName = `${baseName}.g4rpt`;
         let counter = 2;
 
@@ -396,9 +513,19 @@ export class RunService implements vscode.Disposable {
         return tally;
     }
 
-    // Starts the record of one bot in the queued state.
-    private static newTestRecord(test: RunRequest['tests'][number]): TestRecord {
+    // Starts the record of one plan item in one pass, in the queued state. The pass picks the item's
+    // row: the row at the iteration's index, or none for a pass without data.
+    private static newTestRecord(test: RunTest, pass: RunPass): TestRecord {
+        const key = test.key || test.id;
+        const values = pass.index >= 0 ? test.data?.[pass.index] : undefined;
+        const runKey = pass.number > 0 ? `${key}@${pass.number}` : key;
+
         return {
+            runKey,
+            key,
+            position: test.position,
+            iteration: pass.number,
+            values,
             id: test.id,
             name: test.name,
             file: test.id,
@@ -417,7 +544,19 @@ export class RunService implements vscode.Disposable {
     }
 }
 
-// Compile-time contracts stay after the executable code.
+// Compile-time contracts stay after the executable code, interfaces precede type aliases, and
+// local dependency chains take priority over A-Z sorting.
+
+/**
+ * One pass of a run: the whole suite runs once per pass.
+ */
+interface RunPass {
+    /** One-based iteration number, as the editor shows it; 0 for a run without iterations. */
+    number: number;
+
+    /** Index of the iteration in the plan, which picks each item's row; -1 for a run without iterations. */
+    index: number;
+}
 
 /**
  * Values shared by the bots of one run.

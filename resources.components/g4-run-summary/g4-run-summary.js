@@ -2,14 +2,16 @@
  * G4(TM) run summary component: <g4-run-summary>.
  *
  * Shows one Test Wright run record (run.json): the run name and status, when and where it ran, the
- * per-status tally, report tools, and one row per bot with its status, duration, and message.
- * Clicking a bot that has a saved G4 report asks the page to open it.
+ * per-status tally, report tools, and one row per execution (a plan item in one iteration) with its
+ * plan position, iteration, data values, status, duration, and message. Clicking an execution that
+ * has a saved G4 report asks the page to open it.
  *
  * Contract:
  * - Attributes: test-id (prefix of every part's data-test-id).
  * - Properties: record (the run record object).
  * - Methods: showNotice(text, level) shows a one-line notice ('info' | 'error'); '' hides it.
- * - Events (bubble): g4-action { id: 'open-bot', testId } | { id: 'open-allure' |
+ * - Events (bubble): g4-action { id: 'open-bot', testId } (testId: the execution's runKey, or the bot
+ *   id in older records) | { id: 'open-allure' |
  *   'open-allure-browser' | 'convert-allure' | 'open-json' | 'reveal-folder' }.
  */
 (() => {
@@ -157,13 +159,19 @@
             const time = document.createElement('span');
             const hasReport = Boolean(test.reportFile);
 
+            // Name the execution by its plan position and iteration, so duplicate items and
+            // iterations of the same bot stay apart; older records have neither.
+            const runKey = test.runKey ?? test.id;
+            const positionText = test.position ? ` #${test.position}` : '';
+            const iterationText = test.iteration ? ` - iteration ${test.iteration}` : '';
+
             row.className = 'g4-run-summary__case';
-            row.dataset.testId = `${prefix}-case-${test.id}`;
+            row.dataset.testId = `${prefix}-case-${runKey}`;
             row.classList.toggle('g4-run-summary__case--openable', hasReport);
             row.title = hasReport ? 'Open the G4 report of this bot' : 'No G4 report: the bot got no engine response';
             top.className = 'g4-run-summary__case-top';
             name.className = 'g4-run-summary__case-name';
-            name.textContent = test.name;
+            name.textContent = `${test.name}${positionText}${iterationText}`;
             time.className = 'g4-run-summary__case-time';
             time.textContent = formatDuration(test.duration);
             top.append(name, time, this.#newBadge(test.status));
@@ -183,6 +191,13 @@
                 details.push(`tags: ${test.tags.join(', ')}`);
             }
 
+            // Show the data row this execution sent, so a failing iteration shows its values.
+            const values = Object.entries(test.values ?? {});
+
+            if (values.length > 0) {
+                details.push(`data: ${values.map(([column, value]) => `${column}=${value}`).join(', ')}`);
+            }
+
             const detailLine = document.createElement('span');
 
             detailLine.className = 'g4-run-summary__case-detail';
@@ -200,11 +215,11 @@
             if (hasReport) {
                 row.tabIndex = 0;
                 row.setAttribute('role', 'button');
-                row.addEventListener('click', () => this.#dispatchAction({ id: 'open-bot', testId: test.id }));
+                row.addEventListener('click', () => this.#dispatchAction({ id: 'open-bot', testId: runKey }));
                 row.addEventListener('keydown', (event) => {
                     if (event.key === 'Enter' || event.key === ' ') {
                         event.preventDefault();
-                        this.#dispatchAction({ id: 'open-bot', testId: test.id });
+                        this.#dispatchAction({ id: 'open-bot', testId: runKey });
                     }
                 });
             }

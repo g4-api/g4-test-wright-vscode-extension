@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy"
           content="default-src 'none'; img-src {{$ csp.source }} data:; font-src {{$ csp.source }}; style-src {{$ csp.source }} 'unsafe-inline'; script-src {{$ csp.source }};">
-    <meta name="g4-components" content="g4-accordion g4-console-drawer g4-date-picker g4-empty-state g4-environment-picker g4-modal g4-run-summary g4-select g4-tag-filter g4-toggle">
+    <meta name="g4-components" content="g4-accordion g4-console-drawer g4-data-sheet g4-date-picker g4-empty-state g4-environment-picker g4-modal g4-run-summary g4-select g4-tag-filter g4-toggle">
     <title>Test Wright Components</title>
     {{$ components.styles }}
     <link rel="stylesheet" href="{{$ component.style.uri }}">
@@ -37,6 +37,11 @@
             <h2>g4-toggle (reused from G4 Studio)</h2>
             <g4-toggle id="sample-toggle" label="Parallel Tests" hint="One worker per CPU" test-id="sample-toggle"></g4-toggle>
             <g4-toggle label="Collect" checked test-id="sample-toggle-checked"></g4-toggle>
+            <g4-toggle title="Include in the run"
+                       aria-label="Include the sample plan item in the run"
+                       checked
+                       compact
+                       test-id="sample-toggle-compact"></g4-toggle>
         </section>
 
         <section class="gallery-card" data-test-id="gallery-empty-states">
@@ -61,6 +66,11 @@
         <section class="gallery-card gallery-card--tall" data-test-id="gallery-run-summary">
             <h2>g4-run-summary</h2>
             <g4-run-summary id="sample-run-summary" test-id="sample-run-summary"></g4-run-summary>
+        </section>
+
+        <section class="gallery-card gallery-card--tall" data-test-id="gallery-data-sheet">
+            <h2>g4-data-sheet</h2>
+            <g4-data-sheet id="sample-data-sheet" test-id="sample-data-sheet"></g4-data-sheet>
         </section>
 
         <section class="gallery-card" data-test-id="gallery-modal">

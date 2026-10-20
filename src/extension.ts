@@ -1,6 +1,8 @@
 import * as vscode from 'vscode';
+import { AddPracticeBotsCommand } from './commands/add-practice-bots';
 import { AllureReportService } from './services/allure-report-service';
 import { ConvertRunToAllureCommand, ShowRunReportCommand } from './commands/show-run-report';
+import { DocumentsTreeProvider } from './providers/documents-tree-provider';
 import { Global } from './constants/global';
 import { RunReportProvider } from './providers/run-report-provider';
 import { RunService } from './services/run-service';
@@ -14,7 +16,7 @@ import { Utilities } from './extensions/utilities';
  * Entry point of G4 Studio Test Wright.
  *
  * Builds the shared services (runs, scheduler, Allure, run reports), registers the commands, the
- * activity-bar launcher, and the panel serializer, and watches manifest.json so engine and report
+ * activity-bar launcher and Documentation view, and the panel serializer, and watches manifest.json so engine and report
  * settings apply without a reload.
  *
  * @param context - The extension context that owns every disposable.
@@ -34,6 +36,7 @@ export function activate(context: vscode.ExtensionContext): void {
     // Commands.
     new ShowTestWrightCommand(context, panelProvider).register();
     new OpenNewTestWrightCommand(context, panelProvider).register();
+    new AddPracticeBotsCommand(context, panelProvider).register();
     new ShowRunReportCommand(context, runReports).register();
     new ConvertRunToAllureCommand(context).register();
     new ShowComponentGalleryCommand(context).register();
@@ -42,6 +45,7 @@ export function activate(context: vscode.ExtensionContext): void {
     void vscode.commands.executeCommand('setContext', 'g4TestWright.isDevelopment', context.extensionMode === vscode.ExtensionMode.Development);
 
     registerLauncher(context, panelProvider);
+    new DocumentsTreeProvider(context).register();
 
     // Restore the panel after a window reload.
     context.subscriptions.push(vscode.window.registerWebviewPanelSerializer(TEST_WRIGHT_VIEW_TYPE, {

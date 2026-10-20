@@ -1,0 +1,101 @@
+{
+    "authentication": {
+        "token": "",
+        "password": "",
+        "username": ""
+    },
+    "driverParameters": {
+        "capabilities": {
+            "alwaysMatch": {
+                "browserName": "Uia",
+                "uia:options": {
+                    "label": "practice"
+                }
+            }
+        },
+        "driver": "SimulatorDriver",
+        "driverBinaries": ".",
+        "firstMatch": [
+            {}
+        ]
+    },
+    "reference": {
+        "id": "practice-environment",
+        "name": "practice-environment",
+        "description": "",
+        "tags": [
+            "env"
+        ]
+    },
+    "settings": {
+        "automationSettings": {
+            "loadTimeout": 60000,
+            "maxParallel": 1,
+            "returnStructuredResponse": true,
+            "searchTimeout": 15000
+        },
+        "screenshotsSettings": {
+            "outputFolder": ".",
+            "convertToBase64": true,
+            "returnScreenshots": true,
+            "onExceptionOnly": false
+        },
+        "pluginsSettings": {
+            "externalRepositories": [],
+            "servers": {}
+        },
+        "exceptionsSettings": {
+            "returnExceptions": true
+        },
+        "environmentsSettings": {
+            "defaultEnvironment": "SystemParameters",
+            "returnEnvironment": true
+        }
+    },
+    "stages": [
+        {
+            "reference": {
+                "id": "practicestage1",
+                "name": "G4™ Default Stage",
+                "description": "A container that holds jobs."
+            },
+            "jobs": [
+                {
+                    "reference": {
+                        "id": "practicejob1",
+                        "name": "G4™ Default Job",
+                        "description": "A container that holds actions."
+                    },
+                    "rules": [
+                        {
+                            "$type": "Action",
+                            "pluginName": "Assert",
+                            "reference": {
+                                "id": "practice0010"
+                            },
+                            "capabilities": {
+                                "displayName": "Check The Text From The Environment"
+                            },
+                            "locator": "Xpath",
+                            "argument": "{{$ --Condition:ElementAttribute --Expected:^{{$Get-Parameter --Name:PageTextPattern --Scope:Application --Environment:Practice}}$ --Operator:Match}}",
+                            "onAttribute": "Name",
+                            "onElement": "//positive",
+                            "regularExpression": "(?si).*"
+                        },
+                        {
+                            "$type": "Action",
+                            "pluginName": "CloseBrowser",
+                            "reference": {
+                                "id": "practice0011"
+                            },
+                            "capabilities": {
+                                "displayName": "Close Browser"
+                            },
+                            "locator": "Xpath"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

@@ -16,7 +16,7 @@
     --test-wright-card-background: var(--vscode-sideBar-background, var(--vscode-editor-background));
     --test-wright-drop-background: var(--vscode-list-dropBackground, rgba(0, 122, 204, .12));
     --test-wright-failed: var(--vscode-testing-iconFailed, #f14c4c);
-    --test-wright-font-family: var(--vscode-font-family, 'Segoe UI', system-ui, sans-serif);
+    --test-wright-font-family: var(--vscode-font-family);
     --test-wright-foreground: var(--vscode-foreground);
     --test-wright-header-background: var(--vscode-titleBar-activeBackground, var(--vscode-sideBar-background));
     --test-wright-hover-background: var(--vscode-list-hoverBackground);
@@ -37,9 +37,11 @@
     --test-wright-secondary-foreground: var(--vscode-button-secondaryForeground);
     --test-wright-secondary-hover-background: var(--vscode-button-secondaryHoverBackground);
     --test-wright-sidebar-background: var(--vscode-sideBar-background, var(--vscode-editor-background));
-    --test-wright-statusbar-background: var(--vscode-statusBar-background);
-    --test-wright-statusbar-foreground: var(--vscode-statusBar-foreground);
-    --test-wright-statusbar-hover-background: var(--vscode-statusBarItem-hoverBackground);
+    --test-wright-statusbar-background: var(--vscode-panel-background, var(--vscode-editor-background));
+    --test-wright-statusbar-border: var(--vscode-panel-border, rgba(127, 127, 127, .3));
+    --test-wright-statusbar-foreground: var(--vscode-descriptionForeground);
+    --test-wright-statusbar-hover-background: var(--vscode-toolbar-hoverBackground, rgba(90, 93, 94, .31));
+    --test-wright-statusbar-toggle-foreground: var(--vscode-icon-foreground, var(--vscode-foreground));
     --test-wright-tree-focus-outline: var(--vscode-list-focusOutline, var(--vscode-focusBorder));
     --test-wright-tree-guide: var(--vscode-tree-indentGuidesStroke, rgba(127, 127, 127, .4));
     --test-wright-tree-inactive-selection-background: var(--vscode-list-inactiveSelectionBackground);

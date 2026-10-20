@@ -13,17 +13,25 @@
  */
 async function addScheduledRun() {
     const value = elements['input-schedule'].value;
-    const items = newPlanFileItems(getCheckedPlanItems()).map((item) => ({ ...item, checked: true }));
+    const checkedItems = getCheckedPlanItems();
 
-    if (!testFutureDateTime(value) || items.length === 0) {
+    if (!testFutureDateTime(value) || checkedItems.length === 0) {
         return;
     }
 
+    // Refuse a schedule whose data would refuse the run, so a timed run never fails on empty values.
+    if (!await testRunData(checkedItems)) {
+        return;
+    }
+
+    // Snapshot the items with their keys and data, and the plan's iterations, for the timed run.
+    const items = newPlanFileItems(checkedItems).map((item) => ({ ...item, checked: true, data: getRunData(item) }));
     const runAt = new Date(parseDateTime(value));
     const result = await g4Host.request('schedules:add', {
         runAt: runAt.toISOString(),
         label: '',
         items,
+        iterations: state.iterations.map((iteration) => ({ include: iteration.include !== false })),
         testParallel: state.planParallel,
         environment: state.environment,
         folderPath: state.folderPath,
@@ -44,12 +52,10 @@ async function addScheduledRun() {
 /**
  * Loads a scheduled run's snapshot into the plan, confirming before replacing it.
  *
- * @param {Array<object>} items - The scheduled items.
- * @param {string} label - The schedule label (for logs).
- * @param {boolean} testParallel - Whether the run's bots run in parallel.
+ * @param {object} schedule - The scheduled run: { items, iterations, label, testParallel }.
  * @returns {Promise<void>}
  */
-async function loadSchedulePlan(items, label, testParallel) {
+async function loadSchedulePlan(schedule) {
     if (state.plan.length > 0) {
         const isConfirmed = await confirmDialog({
             title: 'Replace plan',
@@ -62,7 +68,14 @@ async function loadSchedulePlan(items, label, testParallel) {
         }
     }
 
-    setLoadedPlan({ type: PLAN_FILE_TYPE, items, parallel: Boolean(testParallel) }, label || 'scheduled run');
+    const plan = {
+        type: PLAN_FILE_TYPE,
+        items: schedule.items,
+        iterations: schedule.iterations || [],
+        parallel: Boolean(schedule.testParallel)
+    };
+
+    setLoadedPlan(plan, schedule.label || 'scheduled run');
 }
 
 /**
@@ -154,7 +167,7 @@ function showScheduleItem(schedule) {
     cancel.addEventListener('click', () => removeSchedule(schedule.id));
 
     item.addEventListener('dragstart', (event) => {
-        runtime.dragPayload = { kind: 'schedulePlan', items: schedule.items, label: schedule.label, testParallel: schedule.testParallel };
+        runtime.dragPayload = { kind: 'schedulePlan', schedule };
         event.dataTransfer.effectAllowed = 'copy';
         event.dataTransfer.setData('text/plain', schedule.label || 'schedule');
         item.classList.add('dragging');

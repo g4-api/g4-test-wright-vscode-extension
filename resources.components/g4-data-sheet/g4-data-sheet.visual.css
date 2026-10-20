@@ -1,0 +1,129 @@
+/*
+ * G4 data sheet visual language: theme surfaces for the headers and inputs, a strong line between
+ * the column groups of plan items, a warning border on empty values, and dimmed excluded iterations.
+ */
+.g4-data-sheet {
+    color: var(--g4-data-sheet-foreground);
+    background-color: var(--g4-data-sheet-background);
+}
+
+.g4-data-sheet__table thead th,
+.g4-data-sheet__controls {
+    color: var(--g4-data-sheet-header-foreground);
+    background-color: var(--g4-data-sheet-header-background);
+    border-color: var(--g4-data-sheet-border-color);
+}
+
+.g4-data-sheet__corner,
+.g4-data-sheet__column {
+    font-weight: 500;
+    color: var(--g4-data-sheet-muted-foreground);
+}
+
+.g4-data-sheet__group,
+.g4-data-sheet__column--first,
+.g4-data-sheet__cell--first {
+    border-left-color: var(--g4-data-sheet-group-border-color);
+}
+
+.g4-data-sheet__group-title {
+    font-weight: 600;
+}
+
+.g4-data-sheet__group-subtitle {
+    font-weight: 400;
+    color: var(--g4-data-sheet-muted-foreground);
+}
+
+.g4-data-sheet__copy {
+    font-family: inherit;
+    color: var(--g4-data-sheet-select-foreground);
+    background-color: var(--g4-data-sheet-select-background);
+    border-color: var(--g4-data-sheet-select-border-color);
+    border-radius: var(--g4-data-sheet-radius);
+}
+
+.g4-data-sheet__number {
+    font-variant-numeric: tabular-nums;
+    color: var(--g4-data-sheet-muted-foreground);
+}
+
+.g4-data-sheet__row-button {
+    cursor: pointer;
+    color: var(--g4-data-sheet-button-foreground);
+    background: transparent;
+    border-radius: var(--g4-data-sheet-radius);
+}
+
+.g4-data-sheet__row-button:hover {
+    background-color: var(--g4-data-sheet-button-hover-background);
+}
+
+.g4-data-sheet__row-button:focus-visible,
+.g4-data-sheet__add:focus-visible,
+.g4-data-sheet__copy:focus-visible {
+    outline: 1px solid var(--g4-data-sheet-focus-border-color);
+    outline-offset: 1px;
+}
+
+.g4-data-sheet__cell {
+    border-bottom-color: var(--g4-data-sheet-border-color);
+}
+
+.g4-data-sheet__input {
+    font-family: inherit;
+    color: var(--g4-data-sheet-input-foreground);
+    background-color: var(--g4-data-sheet-input-background);
+    border-color: var(--g4-data-sheet-input-border-color);
+    border-radius: var(--g4-data-sheet-radius);
+}
+
+.g4-data-sheet__input:focus {
+    outline: none;
+    border-color: var(--g4-data-sheet-focus-border-color);
+}
+
+/* An empty value of an included iteration: a run is refused until it is filled. */
+.g4-data-sheet__input--empty {
+    border-color: var(--g4-data-sheet-empty-border-color);
+}
+
+/* An excluded iteration stays editable, but dimmed, so the rows that run stand out. */
+.g4-data-sheet__row--excluded .g4-data-sheet__cell,
+.g4-data-sheet__row--excluded .g4-data-sheet__number {
+    opacity: var(--g4-data-sheet-excluded-opacity);
+}
+
+.g4-data-sheet__empty {
+    color: var(--g4-data-sheet-muted-foreground);
+}
+
+.g4-data-sheet__footer {
+    border-top-color: var(--g4-data-sheet-border-color);
+    background-color: var(--g4-data-sheet-header-background);
+}
+
+.g4-data-sheet__add {
+    cursor: pointer;
+    font-family: inherit;
+    color: var(--g4-data-sheet-primary-foreground);
+    background-color: var(--g4-data-sheet-primary-background);
+    border-radius: var(--g4-data-sheet-radius);
+}
+
+.g4-data-sheet__add:hover {
+    background-color: var(--g4-data-sheet-primary-hover-background);
+}
+
+.g4-data-sheet__add:disabled {
+    cursor: default;
+    opacity: var(--g4-data-sheet-disabled-opacity);
+}
+
+.g4-data-sheet__summary {
+    color: var(--g4-data-sheet-muted-foreground);
+}
+
+.g4-data-sheet__summary--warning {
+    color: var(--g4-data-sheet-warning-foreground);
+}

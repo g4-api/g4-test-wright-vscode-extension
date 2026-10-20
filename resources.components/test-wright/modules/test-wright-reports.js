@@ -6,14 +6,33 @@
  */
 
 /**
- * Builds plan rows from a run record (fresh uids).
+ * Builds plan rows from a run record (fresh uids and keys, no data).
  *
  * @param {object} record - The run record.
- * @returns {Array<object>} The rows.
+ * @returns {Array<object>} The rows: one per plan item of the run, in its order.
+ *
+ * @remarks
+ * A run with iterations records each item once per iteration; the item is added once. Records
+ * written before items had keys add one row per record, as before.
  */
 function getPlanItemsFromReport(record) {
-    return record.tests.map((test) => ({
+    const seenKeys = new Set();
+    const tests = record.tests.filter((test) => {
+        if (!test.key) {
+            return true;
+        }
+
+        const isSeen = seenKeys.has(test.key);
+
+        seenKeys.add(test.key);
+
+        return !isSeen;
+    });
+
+    return tests.map((test) => ({
         uid: runtime.nextUid++,
+        key: newItemKey(),
+        data: [],
         testId: test.id,
         status: 'not-run',
         checked: true,
@@ -54,6 +73,9 @@ async function loadReportIntoPlan(filePath) {
         writeLog(`Run bots appended: ${source} (+${items.length} items).`, 'info');
         showApp();
 
+        // Read the appended bots, so they get rows for this plan's iterations.
+        void updateDataColumns();
+
         return;
     }
 
@@ -69,9 +91,12 @@ async function loadReportIntoPlan(filePath) {
         }
     }
 
+    // A run record holds no plan data, so the loaded plan starts without iterations.
     state.plan = items;
+    state.iterations = [];
     writeLog(`Run bots loaded: ${source} (${items.length} items).`, 'info');
     showApp();
+    void updateDataColumns();
 }
 
 /**

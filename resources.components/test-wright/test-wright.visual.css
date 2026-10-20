@@ -210,6 +210,24 @@ input:focus-visible {
     background-color: var(--test-wright-hover-background);
 }
 
+.plan-data {
+    cursor: pointer;
+    background: transparent;
+    border-color: var(--test-wright-border);
+    border-radius: var(--test-wright-radius);
+    color: var(--test-wright-icon-foreground);
+}
+
+.plan-data:hover {
+    background-color: var(--test-wright-hover-background);
+}
+
+/* An included iteration of this item has an empty value: a run is refused until it is filled. */
+.plan-data--warning {
+    border-color: var(--test-wright-warning);
+    color: var(--test-wright-warning);
+}
+
 .icon-run:not(:disabled) {
     color: var(--test-wright-passed);
 }
@@ -442,13 +460,15 @@ input:focus-visible {
     border-top-color: var(--test-wright-border);
 }
 
+/* A quiet panel footer, not VS Code's status bar colors: it sits right above the real status bar. */
 .statusbar {
     background-color: var(--test-wright-statusbar-background);
+    border-top-color: var(--test-wright-statusbar-border);
     color: var(--test-wright-statusbar-foreground);
 }
 
 .layout-toggle {
-    color: var(--test-wright-statusbar-foreground);
+    color: var(--test-wright-statusbar-toggle-foreground);
     opacity: .7;
 }
 

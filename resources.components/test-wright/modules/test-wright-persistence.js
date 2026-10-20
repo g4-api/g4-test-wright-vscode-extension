@@ -28,6 +28,7 @@ function newStateSnapshot() {
         filterText: state.filterText,
         selectedTags: [...state.selectedTags],
         plan: newPlanFileItems(state.plan),
+        iterations: state.iterations.map((iteration) => ({ include: iteration.include !== false })),
         ui: {
             sidebarW: runtime.uiSidebarW,
             repoW: runtime.uiRepoW,
@@ -92,6 +93,7 @@ async function restoreSession() {
     state.showSidebar = ui.showSidebar !== false;
     state.showRepo = ui.showRepo !== false;
     state.plan = getPlanItemsFromFile({ type: PLAN_FILE_TYPE, items: Array.isArray(saved?.plan) ? saved.plan : [] }) || [];
+    state.iterations = getPlanIterationsFromFile(saved);
 
     elements['input-filter'].value = state.filterText;
     setUiSizes(ui);
@@ -109,6 +111,9 @@ async function restoreSession() {
     if (state.folderPath) {
         await startDiscovery({ isKeepingFilters: true });
     }
+
+    // Read the plan's bots, so each restored table follows its bot's current columns.
+    await updateDataColumns({ isRefreshing: true });
 
     if (state.repoFolderPath) {
         await updateRepo();

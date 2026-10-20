@@ -13,6 +13,7 @@ webpack.config.js
 
 # Development notes (visual test plan and results); user docs are in resources.docs
 docs/**
+**/.markdownlint.jsonc
 
 # Source maps of the bundle
 dist/**/*.map

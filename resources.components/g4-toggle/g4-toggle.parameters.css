@@ -2,6 +2,8 @@
  * G4 toggle parameters, mapped to VS Code theme variables.
  */
 :root {
+    --g4-toggle-focus-outline: 1px solid var(--vscode-focusBorder);
+    --g4-toggle-focus-outline-offset: 2px;
     --g4-toggle-hint-foreground: var(--vscode-descriptionForeground);
     --g4-toggle-knob-background: var(--vscode-editor-background);
     --g4-toggle-knob-offset: translateX(16px);

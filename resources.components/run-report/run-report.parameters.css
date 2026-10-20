@@ -3,6 +3,6 @@
  */
 :root {
     --run-report-background: var(--vscode-editor-background);
-    --run-report-font-family: var(--vscode-font-family, 'Segoe UI', system-ui, sans-serif);
+    --run-report-font-family: var(--vscode-font-family);
     --run-report-foreground: var(--vscode-foreground);
 }

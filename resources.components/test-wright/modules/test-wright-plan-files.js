@@ -6,7 +6,9 @@
  */
 
 const PLAN_FILE_TYPE = 'g4-test-wright-plan';
-const PLAN_FILE_VERSION = 1;
+
+// Version 2 adds item keys, item data rows, and the plan iterations; version 1 plans still load.
+const PLAN_FILE_VERSION = 2;
 const PLAN_JSON_EXTENSION_PATTERN = /\.json$/i;
 const PLAN_NAME_FORBIDDEN_CHARACTER_PATTERN = /[\\/:*?"<>|]/g;
 const PATH_SEPARATOR_PATTERN = /[\\/]/;
@@ -28,9 +30,18 @@ function addLoadedPlan(plan, source) {
         return;
     }
 
+    // Take the appended plan's iterations only when this plan has none; otherwise the appended
+    // items keep their rows for this plan's iterations (rows beyond them are dropped).
+    if (state.iterations.length === 0) {
+        state.iterations = getPlanIterationsFromFile(plan);
+    }
+
     state.plan.push(...items);
     writeLog(`Plan appended: ${source} (+${items.length} items).`, 'info');
     showApp();
+
+    // Read the appended bots and align their tables with this plan's iterations.
+    void updateDataColumns();
 }
 
 /**
@@ -53,8 +64,11 @@ function getPlanItemsFromFile(plan) {
         return null;
     }
 
+    // Keep each saved key, so the item's data stays its own; version 1 items get a new key.
     return plan.items.map((item) => ({
         uid: runtime.nextUid++,
+        key: typeof item.key === 'string' && item.key !== '' ? item.key : newItemKey(),
+        data: Array.isArray(item.data) ? item.data.map((row) => ({ ...row })) : [],
         testId: item.testId,
         status: 'not-run',
         checked: item.checked !== false,
@@ -67,13 +81,27 @@ function getPlanItemsFromFile(plan) {
 }
 
 /**
+ * Reads the iterations of a plan file.
+ *
+ * @param {object} plan - The parsed plan file.
+ * @returns {Array<object>} One { include } per iteration; empty for a version 1 plan.
+ */
+function getPlanIterationsFromFile(plan) {
+    const iterations = Array.isArray(plan?.iterations) ? plan.iterations : [];
+
+    return iterations.map((iteration) => ({ include: iteration?.include !== false }));
+}
+
+/**
  * Converts plan rows into portable plan-file items.
  *
  * @param {Array<object>} items - The rows.
- * @returns {Array<object>} The file items.
+ * @returns {Array<object>} The file items, with each item's key and a copy of its data rows.
  */
 function newPlanFileItems(items) {
     return items.map((item) => ({
+        key: item.key,
+        data: (item.data || []).map((row) => ({ ...row })),
         testId: item.testId,
         name: item.name || '',
         file: item.file || item.testId,
@@ -96,6 +124,7 @@ function newPlanJson() {
         savedAt: new Date().toISOString(),
         folderPath: state.folderPath,
         parallel: state.planParallel,
+        iterations: state.iterations.map((iteration) => ({ include: iteration.include !== false })),
         items: newPlanFileItems(state.plan)
     };
 }
@@ -307,9 +336,13 @@ function setLoadedPlan(plan, source) {
     }
 
     state.plan = items;
+    state.iterations = getPlanIterationsFromFile(plan);
     state.planParallel = Boolean(plan.parallel);
     writeLog(`Plan loaded: ${source} (${items.length} items).`, 'info');
     showApp();
+
+    // Read the plan's bots, so each table follows its bot's current columns.
+    void updateDataColumns();
 }
 
 /**
