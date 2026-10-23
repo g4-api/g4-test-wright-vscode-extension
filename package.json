@@ -6,6 +6,9 @@
     "engines": {
         "vscode": "^1.105.0"
     },
+    "extensionDependencies": [
+        "g4-api.g4-engine-client"
+    ],
     "publisher": "g4-api",
     "repository": {
         "type": "git",
@@ -34,13 +37,18 @@
                 "command": "TestWright.Show",
                 "category": "G4 Test Wright",
                 "title": "Open Test Wright",
-                "icon": "$(beaker)"
+                "icon": "$(checklist)"
             },
             {
                 "command": "TestWright.OpenNew",
                 "category": "G4 Test Wright",
                 "title": "Open New Test Wright Tab",
                 "icon": "$(add)"
+            },
+            {
+                "command": "TestWright.AddPracticeBots",
+                "category": "G4 Test Wright",
+                "title": "Add Practice Bots"
             },
             {
                 "command": "TestWright.ShowComponentGallery",
@@ -56,6 +64,12 @@
                 "command": "TestWright.ConvertRunToAllure",
                 "category": "G4 Test Wright",
                 "title": "Convert Run to Allure Results"
+            },
+            {
+                "command": "TestWright.RefreshDocuments",
+                "category": "G4 Test Wright",
+                "title": "Refresh Documentation",
+                "icon": "$(refresh)"
             }
         ],
         "views": {
@@ -65,13 +79,18 @@
                     "id": "g4TestWrightLauncher",
                     "name": "Test Wright",
                     "icon": "resources.assets/g4-test-wright-mark.svg"
+                },
+                {
+                    "type": "tree",
+                    "id": "g4TestWrightDocuments",
+                    "name": "Documentation"
                 }
             ]
         },
         "viewsWelcome": [
             {
                 "view": "g4TestWrightLauncher",
-                "contents": "Discover the bots of your G4 project, build a run plan, and run it against the G4 engine.\n[Open Test Wright](command:TestWright.OpenNew)\nEach click opens another Test Wright tab, so you can work on several plans at once. Each file under bots/ is a test and each subfolder is a suite. Runs are saved under reports/ with G4 and Allure reports."
+                "contents": "Discover the bots of your G4 project, build a run plan, and run it against the G4 engine.\n[Open Test Wright](command:TestWright.OpenNew)\nEach click opens another Test Wright tab, so you can work on several plans at once. Each file under bots/ is a test and each subfolder is a suite. Runs are saved under reports/ with G4 and Allure reports.\nNew to Test Wright? Add a few practice bots to this project and follow the learning path.\n[Add Practice Bots](command:TestWright.AddPracticeBots)"
             }
         ],
         "viewsContainers": {
@@ -84,6 +103,13 @@
             ]
         },
         "menus": {
+            "view/title": [
+                {
+                    "command": "TestWright.RefreshDocuments",
+                    "group": "navigation",
+                    "when": "view == g4TestWrightDocuments"
+                }
+            ],
             "explorer/context": [
                 {
                     "command": "TestWright.ShowRunReport",
@@ -107,6 +133,10 @@
                 },
                 {
                     "command": "TestWright.ConvertRunToAllure",
+                    "when": "false"
+                },
+                {
+                    "command": "TestWright.RefreshDocuments",
                     "when": "false"
                 }
             ]

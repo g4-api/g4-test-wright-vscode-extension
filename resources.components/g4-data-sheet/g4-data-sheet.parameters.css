@@ -1,0 +1,29 @@
+/*
+ * G4 data sheet parameters: the theme values the visual layer reads, mapped to VS Code theme variables.
+ */
+:root {
+    --g4-data-sheet-background: var(--vscode-editor-background);
+    --g4-data-sheet-border-color: var(--vscode-panel-border);
+    --g4-data-sheet-button-foreground: var(--vscode-icon-foreground, var(--vscode-foreground));
+    --g4-data-sheet-button-hover-background: var(--vscode-toolbar-hoverBackground);
+    --g4-data-sheet-disabled-opacity: .5;
+    --g4-data-sheet-empty-border-color: var(--vscode-inputValidation-warningBorder, #cca700);
+    --g4-data-sheet-excluded-opacity: .45;
+    --g4-data-sheet-focus-border-color: var(--vscode-focusBorder);
+    --g4-data-sheet-foreground: var(--vscode-foreground);
+    --g4-data-sheet-group-border-color: var(--vscode-focusBorder);
+    --g4-data-sheet-header-background: var(--vscode-sideBar-background);
+    --g4-data-sheet-header-foreground: var(--vscode-sideBarTitle-foreground, var(--vscode-foreground));
+    --g4-data-sheet-input-background: var(--vscode-input-background);
+    --g4-data-sheet-input-border-color: var(--vscode-input-border, transparent);
+    --g4-data-sheet-input-foreground: var(--vscode-input-foreground);
+    --g4-data-sheet-muted-foreground: var(--vscode-descriptionForeground);
+    --g4-data-sheet-primary-background: var(--vscode-button-background);
+    --g4-data-sheet-primary-foreground: var(--vscode-button-foreground);
+    --g4-data-sheet-primary-hover-background: var(--vscode-button-hoverBackground);
+    --g4-data-sheet-radius: 3px;
+    --g4-data-sheet-select-background: var(--vscode-dropdown-background);
+    --g4-data-sheet-select-border-color: var(--vscode-dropdown-border, transparent);
+    --g4-data-sheet-select-foreground: var(--vscode-dropdown-foreground);
+    --g4-data-sheet-warning-foreground: var(--vscode-editorWarning-foreground, #cca700);
+}

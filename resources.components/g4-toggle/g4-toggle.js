@@ -2,9 +2,12 @@
  * G4(TM) toggle component: <g4-toggle>.
  *
  * An on/off switch with its label and an optional hint beside it. Clicking the label flips it.
+ * Without label and hint it is a bare switch (for example the Include switch of a plan row).
  *
  * Contract:
- * - Attributes: label, hint, checked (initially on), test-id (prefix of every part's data-test-id).
+ * - Attributes: label, hint, checked (initially on), test-id (prefix of every part's data-test-id),
+ *   compact (no gap after the toggle; inline, for rows and cells), aria-label (the switch's
+ *   accessible name when there is no visible label).
  * - Properties: value (true when on).
  * - Methods: focus().
  * - Events (bubble): g4-input { value } when the user flips the switch.
@@ -65,18 +68,35 @@
 
             const content = this.#newContent();
             const input = content.querySelector('[data-part="input"]');
+            const title = content.querySelector('[data-part="title"]');
             const hint = content.querySelector('[data-part="hint"]');
+            const labelText = this.getAttribute('label') ?? '';
             const hintText = this.getAttribute('hint') ?? '';
+            const accessibleName = this.getAttribute('aria-label') ?? '';
 
-            // The switch starts from the checked attribute, with its label.
+            // The switch starts from the checked attribute.
             input.checked = this.hasAttribute('checked');
-            content.querySelector('[data-part="title"]').textContent = this.getAttribute('label') ?? '';
 
-            // An empty hint would add a gap, so it is left out.
+            // A bare switch has no visible text, so the checkbox takes the host's accessible name.
+            if (accessibleName !== '') {
+                input.setAttribute('aria-label', accessibleName);
+            }
+
+            // Empty text parts would add gaps, so they are left out; with both gone, so is their box.
+            if (labelText === '') {
+                title.remove();
+            } else {
+                title.textContent = labelText;
+            }
+
             if (hintText === '') {
                 hint.remove();
             } else {
                 hint.textContent = hintText;
+            }
+
+            if (labelText === '' && hintText === '') {
+                content.querySelector('[data-part="text"]').remove();
             }
 
             // Flipping the switch reports the new state.

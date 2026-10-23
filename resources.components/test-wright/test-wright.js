@@ -12,7 +12,8 @@ const state = {
     environment: '',                 // selected environment name ('' = none)
     environments: [],                // [{ name, path, parameterCount }]
     tests: [],                       // [{ id, name, file, path, suite, tags }]
-    plan: [],                        // ordered [{ uid, testId, status, checked, name, file, suite, tags, folder }]
+    plan: [],                        // ordered [{ uid, key, data, testId, status, checked, name, file, suite, tags, folder }]
+    iterations: [],                  // [{ include }]: the whole suite runs once per included iteration
     selectedTags: new Set(),         // active tag filters
     filterText: '',
     status: 'idle',                  // idle|discovering|ready|running|scheduled|failed
@@ -48,6 +49,7 @@ const runtime = {
     nextUid: 1_000_000_000 + Math.floor(Math.random() * 1_000_000_000),
     dragPayload: null,               // { kind, ids?, uid?, path?, items? }
     lastStatuses: new Map(),         // bot id -> status of its latest run from this page
+    botData: new Map(),              // bot path -> { columns, rows, error } read for the iterations editor
     treeRows: new Map(),             // row key -> { kind, ids, parentKey, ... } of the rendered tree
     treeSelection: '',               // selected tree row key ('suite:<path>' or 'bot:<id>')
     activeRuns: 0,                   // runs started from this page
@@ -96,7 +98,8 @@ function getElements() {
         'header-folder-path', 'status-pill', 'status-text', 'engine-chip', 'engine-text', 'sidebar',
         'btn-select-folder', 'environment-picker', 'resizer-left', 'btn-discover', 'input-filter',
         'tag-filter', 'input-schedule', 'btn-schedule', 'schedule-list', 'toggle-parallel-runs',
-        'count-total', 'count-visible', 'count-plan', 'count-checked', 'btn-run', 'btn-stop',
+        'count-total', 'count-visible', 'count-plan', 'count-checked', 'count-iterations',
+        'btn-edit-iterations', 'btn-run', 'btn-stop',
         'btn-clear-plan', 'btn-import-plan', 'btn-export-plan', 'btn-save-plan-repo',
         'toggle-parallel-tests', 'btn-clear-tree', 'btn-expand-tree', 'btn-collapse-tree', 'tree-list',
         'plan-list', 'pane-resizer', 'resizer-right', 'repo', 'repo-accordion',
@@ -146,6 +149,7 @@ function registerEvents() {
     elements['btn-select-folder'].addEventListener('click', selectFolder);
     elements['btn-discover'].addEventListener('click', () => startDiscovery());
     elements['btn-run'].addEventListener('click', startCheckedPlan);
+    elements['btn-edit-iterations'].addEventListener('click', () => void openDataEditor());
     elements['btn-stop'].addEventListener('click', stopRuns);
     elements['btn-import-plan'].addEventListener('click', readPlan);
     elements['btn-export-plan'].addEventListener('click', savePlan);
@@ -216,6 +220,12 @@ function registerHostEvents() {
             updateIdleStatus();
             showApp();
         }
+    });
+
+    // Project files changed (for example Add Practice Bots): read environments and bots again.
+    g4Host.on('project:changed', async () => {
+        await updateEnvironments();
+        await startDiscovery({ isKeepingFilters: true });
     });
 
     g4Host.on('schedules:changed', setSchedules);
@@ -293,12 +303,19 @@ function showStatusbar() {
 }
 
 /**
- * Runs the checked plan rows now.
+ * Runs the checked plan rows now, once their data is complete.
  *
- * @returns {void}
+ * @returns {Promise<void>}
  */
-function startCheckedPlan() {
-    const items = getCheckedPlanItems().map((item) => ({ uid: item.uid, testId: item.testId }));
+async function startCheckedPlan() {
+    const checkedItems = getCheckedPlanItems();
+
+    // Refuse a run with empty values or no included iteration; the check explains why and opens the editor.
+    if (!await testRunData(checkedItems)) {
+        return;
+    }
+
+    const items = checkedItems.map((item) => ({ uid: item.uid, testId: item.testId }));
 
     void startRun(items, { parallel: state.planParallel });
 }

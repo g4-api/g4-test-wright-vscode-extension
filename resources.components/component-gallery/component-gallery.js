@@ -30,6 +30,36 @@
         ]
     };
 
+    // Sample plan data for <g4-data-sheet>: two plan items of the same bot (they can copy each
+    // other's values), one other bot, and three iterations, the second one excluded and with an
+    // empty value so the warning state shows.
+    const SAMPLE_SHEET = {
+        iterations: [{ include: true }, { include: false }, { include: true }],
+        groups: [
+            {
+                key: 'login-1',
+                title: '#1 login',
+                subtitle: 'smoke/login.json',
+                columns: ['UserName', 'Password'],
+                rows: [{ UserName: 'alice', Password: 'Pa$$word' }, { UserName: 'bob', Password: '' }, { UserName: 'carol', Password: 'say "hi"' }]
+            },
+            {
+                key: 'search-2',
+                title: '#2 search',
+                subtitle: 'smoke/search.json',
+                columns: ['Query'],
+                rows: [{ Query: 'G4' }, { Query: 'Test Wright' }, { Query: 'Allure' }]
+            },
+            {
+                key: 'login-4',
+                title: '#4 login',
+                subtitle: 'smoke/login.json',
+                columns: ['UserName', 'Password'],
+                rows: [{ UserName: 'dave', Password: 'secret' }, { UserName: 'erin', Password: 'secret' }, { UserName: 'frank', Password: 'secret' }]
+            }
+        ]
+    };
+
     // Selected sample tags.
     const selectedTags = new Set();
 
@@ -64,6 +94,7 @@
         });
 
         document.getElementById('sample-run-summary').record = SAMPLE_RECORD;
+        document.getElementById('sample-data-sheet').model = SAMPLE_SHEET;
 
         document.getElementById('open-modal').addEventListener('click', (event) => {
             const modal = document.createElement('g4-modal');

@@ -30,6 +30,12 @@
     transform: var(--g4-toggle-knob-offset);
 }
 
+/* The checkbox is invisible, so keyboard focus shows on the switch. */
+.g4-toggle__input:focus-visible + .g4-toggle__switch {
+    outline: var(--g4-toggle-focus-outline);
+    outline-offset: var(--g4-toggle-focus-outline-offset);
+}
+
 .g4-toggle__hint {
     color: var(--g4-toggle-hint-foreground);
 }

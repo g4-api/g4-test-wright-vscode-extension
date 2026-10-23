@@ -35,13 +35,14 @@ Pages follow the same split: `page.html`, `page.js`, `page.css`, and the three C
 | --- | --- | --- |
 | `g4-accordion` | Stacks child sections under collapsible headers; open sections share the height. | Test Wright (repositories) |
 | `g4-console-drawer` | Timestamped output log with Copy and Clear; lines colored by kind. | Test Wright (console) |
+| `g4-data-sheet` | Iterations as rows, with one column group per plan item that reads data; Include switch (needs `g4-toggle` on the page), Duplicate, Remove, and Copy From. | Test Wright (iterations editor) |
 | `g4-date-picker` | `YYYY-MM-DD HH:MM` box with a calendar popup; past dates optional. | Test Wright (schedule, reports filter) |
 | `g4-empty-state` | Icon, heading, and a supporting line for an empty list. | Test Wright |
 | `g4-environment-picker` | Header trigger with the selected environment and a list of the workspace environments. | Test Wright (header) |
 | `g4-tag-filter` | Searchable multi-select of tags with their bot counts. | Test Wright (filters) |
 | `g4-run-summary` | One run record: status, tally, tools, and one row per bot. | Test Wright (viewer), run report |
 | `g4-modal` | Centered dialog with a round Close button; Escape closes the top one. | Test Wright (dialogs, viewer) |
-| `g4-toggle` | On/off switch with a label and hint. | Test Wright |
+| `g4-toggle` | On/off switch with a label and hint; without them a bare switch (`compact` for rows and cells, `aria-label` for its name). | Test Wright (toolbars, plan rows, iterations editor) |
 | `g4-select` | Themed dropdown, optionally followed by buttons. | Component gallery |
 | `g4-page-header` | Page title, details line, and optional items on the right. | Automation report |
 | `g4-section` | Foldable page section with a description, warning, and status line. | Automation report |

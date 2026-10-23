@@ -8,7 +8,10 @@
  *
  * RESOURCES:
  * Fetch API (Node): https://nodejs.org/api/globals.html#fetch
+ * HTTP client (Node): https://nodejs.org/api/http.html#httprequesturl-options-callback
  */
+import * as http from 'node:http';
+import * as https from 'node:https';
 
 /**
  * Thin wrapper over fetch for the G4 engine.
@@ -47,25 +50,22 @@ export class G4Client {
      */
     public async invokeAutomation(automation: any, signal?: AbortSignal): Promise<InvokeResult> {
         try {
-            const response = await fetch(`${this._baseUrl}/api/v4/g4/automation/invoke`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(automation),
-                signal
-            });
-            const text = await response.text();
+            // Not fetch: its 300-second headers timeout fails every bot that runs longer, because
+            // the engine answers only when the bot finishes.
+            const response = await G4Client.sendRequest(`${this._baseUrl}/api/v4/g4/automation/invoke`, JSON.stringify(automation), signal);
+            const isOk = response.status >= 200 && response.status < 300;
 
-            if (!response.ok) {
-                return { ok: false, status: response.status, error: `HTTP ${response.status} ${response.statusText}: ${G4Client.getShortText(text)}` };
+            if (!isOk) {
+                return { ok: false, status: response.status, error: `HTTP ${response.status} ${response.statusText}: ${G4Client.getShortText(response.text)}` };
             }
 
             try {
-                return { ok: true, status: response.status, data: JSON.parse(text) };
+                return { ok: true, status: response.status, data: JSON.parse(response.text) };
             } catch {
-                return { ok: false, status: response.status, error: `The engine answered with invalid JSON: ${G4Client.getShortText(text)}` };
+                return { ok: false, status: response.status, error: `The engine answered with invalid JSON: ${G4Client.getShortText(response.text)}` };
             }
         } catch (error: any) {
-            const isAbort = error?.name === 'AbortError';
+            const isAbort = error?.name === 'AbortError' || signal?.aborted === true;
 
             return {
                 ok: false,
@@ -133,6 +133,33 @@ export class G4Client {
         };
 
         return Object.fromEntries(Object.entries(parameters).map(([key, value]) => [key, toText(value)]));
+    }
+
+    // POSTs a JSON body with node:http(s) and no time limit; the signal aborts the request.
+    private static sendRequest(url: string, body: string, signal?: AbortSignal): Promise<{ status: number; statusText: string; text: string }> {
+        const target = new URL(url);
+        const transport = target.protocol === 'https:' ? https : http;
+
+        return new Promise((resolve, reject) => {
+            const request = transport.request(target, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) },
+                signal
+            }, (response) => {
+                const chunks: Buffer[] = [];
+
+                response.on('data', (chunk: Buffer) => chunks.push(chunk));
+                response.on('error', reject);
+                response.on('end', () => resolve({
+                    status: response.statusCode ?? 0,
+                    statusText: response.statusMessage ?? '',
+                    text: Buffer.concat(chunks).toString('utf8')
+                }));
+            });
+
+            request.on('error', reject);
+            request.end(body);
+        });
     }
 
     // Keeps error bodies short enough for one console line.

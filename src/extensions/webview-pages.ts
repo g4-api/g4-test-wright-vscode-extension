@@ -9,7 +9,6 @@
  * - {{$ component.style.uri }}   the page stylesheet (<page>.css).
  * - {{$ component.script.uri }}  the page script (<page>.js), loaded last.
  * - {{$ page.modules }}          the module script tags.
- * - {{$ fonts.uri }}             the resources.fonts folder.
  * - {{$ page.data }}             HTML-escaped JSON the page reads from #g4-data (optional).
  *
  * RESOURCES:
@@ -58,7 +57,6 @@ export class WebviewPages {
     public static getResourceRoots(context: vscode.ExtensionContext): vscode.Uri[] {
         return [
             vscode.Uri.joinPath(context.extensionUri, 'resources.components'),
-            vscode.Uri.joinPath(context.extensionUri, 'resources.fonts'),
             vscode.Uri.joinPath(context.extensionUri, 'resources.assets')
         ];
     }
@@ -111,7 +109,6 @@ export class WebviewPages {
             .replace('{{$ component.style.uri }}', () => toUri(path.join(pageFolder, `${pageName}.css`)))
             .replace('{{$ component.script.uri }}', () => toUri(path.join(pageFolder, `${pageName}.js`)))
             .replace('{{$ page.modules }}', () => modules)
-            .replace(/\{\{\$ fonts\.uri \}\}/g, () => webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'resources.fonts')).toString())
             .replace('{{$ page.data }}', () => dataText);
     }
 }

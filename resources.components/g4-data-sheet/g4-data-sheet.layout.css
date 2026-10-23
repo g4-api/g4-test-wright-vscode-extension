@@ -1,0 +1,208 @@
+/*
+ * G4 data sheet layout: a scrolling table with sticky header rows and a sticky iteration column,
+ * and a footer with the Add Iteration button and the summary.
+ */
+g4-data-sheet {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    flex: 1;
+}
+
+.g4-data-sheet {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    font-size: 12px;
+}
+
+/*
+ * The scroll area takes the table's height (and shrinks below it when the rows do not fit), so the
+ * horizontal scrollbar sits right under the last row instead of at the bottom of an empty editor.
+ */
+.g4-data-sheet__scroll {
+    flex: 0 1 auto;
+    min-height: 0;
+    min-width: 0;
+    overflow: auto;
+
+    /*
+     * Scrolling a cell into view (focus, Tab, or a plan row's data button) keeps it clear of the
+     * pinned iteration column (128px) and the two sticky header rows (76px + the column-name row).
+     */
+    scroll-padding-left: 128px;
+    scroll-padding-top: 110px;
+}
+
+.g4-data-sheet__table {
+    border-collapse: separate;
+    border-spacing: 0;
+    min-width: 100%;
+}
+
+.g4-data-sheet__table[hidden],
+.g4-data-sheet__empty[hidden] {
+    display: none;
+}
+
+/* Header cells stay visible while the rows scroll; the second row sits under the first. */
+.g4-data-sheet__table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    padding: 6px 8px;
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+    text-align: left;
+    white-space: nowrap;
+}
+
+/* The column names stick right under the group headers, which have a fixed height. */
+.g4-data-sheet__table thead tr + tr th {
+    top: 76px;
+}
+
+/* The corner and the iteration controls stay visible while the columns scroll sideways. */
+.g4-data-sheet__corner,
+.g4-data-sheet__controls {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    box-sizing: border-box;
+    width: 128px;
+    min-width: 128px;
+    border-right-width: 1px;
+    border-right-style: solid;
+}
+
+/*
+ * A group's label sticks right of the pinned iteration column (its fixed width), so the label stays
+ * readable while the group's columns scroll under it; the label leaves with the group's last column.
+ */
+.g4-data-sheet__group-label {
+    position: sticky;
+    left: 136px;
+    display: inline-block;
+    max-width: 320px;
+}
+
+/*
+ * The corner is both a header cell and the pinned column: it sticks to the top and the left, and
+ * stacks above the scrolling header cells. The selector matches the header rule's specificity, so
+ * this z-index is not overridden by it.
+ */
+.g4-data-sheet__table thead th.g4-data-sheet__corner {
+    left: 0;
+    z-index: 4;
+    vertical-align: bottom;
+}
+
+/* A fixed height (title, subtitle, and Copy From list) keeps the sticky column-name row aligned. */
+.g4-data-sheet__group {
+    height: 76px;
+    box-sizing: border-box;
+    vertical-align: top;
+    border-left-width: 2px;
+    border-left-style: solid;
+}
+
+.g4-data-sheet__group-title,
+.g4-data-sheet__group-subtitle {
+    display: block;
+}
+
+.g4-data-sheet__copy {
+    display: block;
+    font-size: inherit;
+    margin-top: 4px;
+    max-width: 220px;
+    padding: 1px 4px;
+    border-width: 1px;
+    border-style: solid;
+}
+
+.g4-data-sheet__column--first,
+.g4-data-sheet__cell--first {
+    border-left-width: 2px;
+    border-left-style: solid;
+}
+
+.g4-data-sheet__controls {
+    padding: 2px 6px;
+    white-space: nowrap;
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+}
+
+.g4-data-sheet__number {
+    display: inline-block;
+    min-width: 22px;
+    text-align: right;
+    margin-right: 6px;
+}
+
+.g4-data-sheet__include {
+    margin-right: 6px;
+}
+
+.g4-data-sheet__row-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    vertical-align: middle;
+    border-style: none;
+}
+
+.g4-data-sheet__row-button svg {
+    width: 13px;
+    height: 13px;
+}
+
+.g4-data-sheet__cell {
+    padding: 2px 4px;
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+}
+
+.g4-data-sheet__input {
+    box-sizing: border-box;
+    font-size: inherit;
+    width: 100%;
+    min-width: 140px;
+    padding: 3px 6px;
+    border-width: 1px;
+    border-style: solid;
+}
+
+.g4-data-sheet__empty {
+    padding: 24px 16px;
+}
+
+/* The footer stays at the bottom of the editor, however few rows the sheet has. */
+.g4-data-sheet__footer {
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    border-top-width: 1px;
+    border-top-style: solid;
+}
+
+.g4-data-sheet__add {
+    display: inline-flex;
+    font-size: inherit;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-style: none;
+}
+
+.g4-data-sheet__add svg {
+    width: 12px;
+    height: 12px;
+}

@@ -2,8 +2,10 @@
  * Converts a Test Wright run (run.json + one .g4rpt per bot) into Allure results.
  *
  * Mapping (mirrors g4-pytest-wrapper's Allure reporter so both produce the same report shape):
- * - One bot = one Allure test result. Suite labels: parentSuite = bots folder name, suite = the
- *   bot's folder (suite), plus one tag label per reference.tags entry.
+ * - One execution (a plan item in one iteration) = one Allure test result. Suite labels:
+ *   parentSuite = bots folder name, suite = the bot's folder (suite), plus one tag label per
+ *   reference.tags entry. A bot that appears at several plan positions, or a run with iterations,
+ *   gets Position, Iteration, and the row values as parameters and its own history id.
  * - Steps: stage > job > plugin, nested by child plugins. A stage step is written only when the
  *   session has several stages, and a job step only when the stage has several jobs.
  * - Plugin step attachments: the assertion entities (Assert), screenshots, and the exceptions JSON.
@@ -185,7 +187,7 @@ export class AllureConverter {
      */
     public async writeTestResult(record: RunRecord, test: TestRecord, response: any): Promise<string> {
         const uuid = crypto.randomUUID();
-        const historyId = crypto.createHash('md5').update(test.id).digest('hex');
+        const historyId = crypto.createHash('md5').update(AllureConverter.getHistoryKey(record, test)).digest('hex');
 
         // A bot canceled before it started has no times (0); the run start keeps it out of 1970,
         // which would stretch the report's timeline and total duration over decades.
@@ -204,9 +206,10 @@ export class AllureConverter {
             stop: test.stop || start,
             labels: this.newLabels(record, test, response),
 
-            // No parameters: Allure appends them to every test title. The environment and engine
-            // are labels instead (and the run's values are in environment.properties).
-            parameters: [],
+            // Parameters only where results need telling apart (Allure appends them to the title):
+            // the plan position and iteration, and the row values sent in that iteration. The
+            // environment and engine are labels instead (and the run's values are in environment.properties).
+            parameters: AllureConverter.newParameters(record, test),
             links: [],
             steps: [],
             attachments: []
@@ -245,7 +248,7 @@ export class AllureConverter {
             `Run=${record.name}`,
             `Environment=${record.environment || '(none)'}`,
             `Engine=${record.engine}`,
-            `Bots.Folder=${record.botsFolder.split('\\').join('/')}`,
+            `Bots.Folder=${(record.botsFolder ?? '').split('\\').join('/')}`,
             `Parallel=${record.parallel}`,
             `Scheduled=${record.scheduled}`
         ];
@@ -263,6 +266,64 @@ export class AllureConverter {
 
         // Read by Allure 2 readers; Allure 3 gets the same rules through its config (ALLURE_CATEGORIES).
         await fs.writeFile(path.join(this._resultsFolder, 'categories.json'), JSON.stringify(ALLURE_CATEGORIES, null, 2), 'utf8');
+    }
+
+    /**
+     * Returns the key Allure tracks history by, so each execution keeps its own history.
+     *
+     * @param record - The run record.
+     * @param test - The execution.
+     * @returns The bot id, plus the plan position when the bot appears more than once, plus the
+     * iteration when the plan has iterations ('smoke/login.json#4@2').
+     */
+    public static getHistoryKey(record: RunRecord, test: TestRecord): string {
+        const positionText = AllureConverter.testDuplicate(record, test) ? `#${test.position}` : '';
+        const iterationText = test.iteration ? `@${test.iteration}` : '';
+
+        return `${test.id}${positionText}${iterationText}`;
+    }
+
+    /**
+     * Builds the Allure parameters of one execution.
+     *
+     * @param record - The run record.
+     * @param test - The execution.
+     * @returns Position (for a bot that appears more than once), Iteration, and the row values;
+     * empty for a single bot run without iterations, so its title stays plain.
+     */
+    public static newParameters(record: RunRecord, test: TestRecord): AllureParameter[] {
+        const parameters: AllureParameter[] = [];
+
+        // Tell duplicate plan items of the same bot apart by their plan position.
+        if (AllureConverter.testDuplicate(record, test)) {
+            parameters.push({ name: 'Position', value: `#${test.position}` });
+        }
+
+        // Name the iteration and the values it sent, so each row reads as its own test case.
+        if (test.iteration) {
+            parameters.push({ name: 'Iteration', value: `${test.iteration}` });
+        }
+
+        for (const [name, value] of Object.entries(test.values ?? {})) {
+            parameters.push({ name, value });
+        }
+
+        return parameters;
+    }
+
+    /**
+     * Tests whether a bot appears at more than one plan position in a run.
+     *
+     * @param record - The run record.
+     * @param test - The execution.
+     * @returns True when another execution of the same bot has a different position.
+     */
+    public static testDuplicate(record: RunRecord, test: TestRecord): boolean {
+        if (!test.position) {
+            return false;
+        }
+
+        return record.tests.some((candidate) => candidate.id === test.id && candidate.position !== test.position);
     }
 
     /**
@@ -661,6 +722,17 @@ interface AllureAttachment {
  */
 interface AllureLabel {
     name: string;
+    value: string;
+}
+
+/**
+ * One Allure test or step parameter, shown beside the title.
+ */
+export interface AllureParameter {
+    /** Parameter name (for example Iteration, or a data column). */
+    name: string;
+
+    /** Parameter value as text. */
     value: string;
 }
 

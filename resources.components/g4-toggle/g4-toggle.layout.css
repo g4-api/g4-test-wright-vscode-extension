@@ -12,6 +12,13 @@ g4-toggle:last-child {
     margin-bottom: 0;
 }
 
+/* A compact toggle sits inline in a row or a table cell, centered on the text line, with no gap. */
+g4-toggle[compact] {
+    display: inline-flex;
+    margin-bottom: 0;
+    vertical-align: middle;
+}
+
 .g4-toggle__label {
     display: inline-flex;
     align-self: flex-start;

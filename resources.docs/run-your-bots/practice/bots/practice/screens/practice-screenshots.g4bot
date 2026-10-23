@@ -1,0 +1,123 @@
+{
+    "authentication": {
+        "token": "",
+        "password": "",
+        "username": ""
+    },
+    "driverParameters": {
+        "capabilities": {
+            "alwaysMatch": {
+                "browserName": "Uia",
+                "uia:options": {
+                    "label": "practice"
+                }
+            }
+        },
+        "driver": "SimulatorDriver",
+        "driverBinaries": ".",
+        "firstMatch": [
+            {}
+        ]
+    },
+    "reference": {
+        "id": "practice-screenshots",
+        "name": "practice-screenshots",
+        "description": "",
+        "tags": [
+            "visual"
+        ]
+    },
+    "settings": {
+        "automationSettings": {
+            "loadTimeout": 60000,
+            "maxParallel": 1,
+            "returnStructuredResponse": true,
+            "searchTimeout": 15000
+        },
+        "screenshotsSettings": {
+            "outputFolder": ".",
+            "convertToBase64": true,
+            "returnScreenshots": true,
+            "onExceptionOnly": false
+        },
+        "pluginsSettings": {
+            "externalRepositories": [],
+            "servers": {}
+        },
+        "exceptionsSettings": {
+            "returnExceptions": true
+        },
+        "environmentsSettings": {
+            "defaultEnvironment": "SystemParameters",
+            "returnEnvironment": true
+        }
+    },
+    "stages": [
+        {
+            "reference": {
+                "id": "practicestage1",
+                "name": "G4™ Default Stage",
+                "description": "A container that holds jobs."
+            },
+            "jobs": [
+                {
+                    "reference": {
+                        "id": "practicejob1",
+                        "name": "G4™ Default Job",
+                        "description": "A container that holds actions."
+                    },
+                    "rules": [
+                        {
+                            "$type": "Action",
+                            "pluginName": "WaitFlow",
+                            "reference": {
+                                "id": "practice0012"
+                            },
+                            "capabilities": {
+                                "displayName": "Wait For The Page"
+                            },
+                            "locator": "Xpath",
+                            "argument": "{{$ --Condition:ElementExists --Timeout:5000}}",
+                            "onElement": "//positive"
+                        },
+                        {
+                            "$type": "Action",
+                            "pluginName": "SaveScreenshot",
+                            "reference": {
+                                "id": "practice0013"
+                            },
+                            "capabilities": {
+                                "displayName": "Take Screenshot Of The Page"
+                            },
+                            "locator": "Xpath",
+                            "argument": "{{$ --Base64}}"
+                        },
+                        {
+                            "$type": "Action",
+                            "pluginName": "SaveScreenshot",
+                            "reference": {
+                                "id": "practice0014"
+                            },
+                            "capabilities": {
+                                "displayName": "Take Second Screenshot"
+                            },
+                            "locator": "Xpath",
+                            "argument": "{{$ --Base64}}"
+                        },
+                        {
+                            "$type": "Action",
+                            "pluginName": "CloseBrowser",
+                            "reference": {
+                                "id": "practice0015"
+                            },
+                            "capabilities": {
+                                "displayName": "Close Browser"
+                            },
+                            "locator": "Xpath"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

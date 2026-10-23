@@ -239,18 +239,22 @@ export class SchedulerService implements vscode.Disposable {
         }
     }
 
-    // Runs one schedule's plan snapshot.
+    // Runs one schedule's plan snapshot: every item in its position, with its data, once per
+    // included iteration (or once when the snapshot has no iterations).
     private async startSchedule(schedule: ScheduleEntry): Promise<void> {
-        const unique = new Map(schedule.items.map((item) => [item.testId, item]));
         const summary = await this._runService.invokeRun({
             runId: this._nextRunId++,
-            tests: [...unique.values()].map((item) => ({
+            tests: schedule.items.map((item, index) => ({
+                key: item.key || `${item.testId}#${index + 1}`,
                 id: item.testId,
                 name: item.name,
                 suite: item.suite,
                 tags: item.tags,
+                position: index + 1,
+                data: item.data ?? [],
                 path: path.join(item.folder || schedule.folderPath, ...item.testId.split('/'))
             })),
+            iterations: schedule.iterations ?? [],
             folderPath: schedule.folderPath,
             environment: schedule.environment,
             parallel: schedule.testParallel,

@@ -56,11 +56,13 @@ export class RunReportProvider implements vscode.Disposable {
      * Opens the G4 automation report of one bot of a run.
      *
      * @param runFile - The run.json path.
-     * @param testId - The bot id.
+     * @param testId - The execution's run key (older records: the bot id).
      */
     public async showBotReport(runFile: string, testId: string): Promise<void> {
         const record = await RepositoryService.readRun(runFile);
-        const test = record?.tests.find((candidate) => candidate.id === testId);
+
+        // Match the unique run key first: duplicate plan items and iterations share one bot id.
+        const test = record?.tests.find((candidate) => (candidate.runKey ?? candidate.id) === testId);
 
         if (test === undefined || !test.reportFile) {
             vscode.window.showWarningMessage(`No G4 report was saved for '${testId}' (it did not get an engine response).`);
@@ -69,7 +71,10 @@ export class RunReportProvider implements vscode.Disposable {
         }
 
         const base64 = await fs.readFile(path.join(path.dirname(runFile), test.reportFile), 'utf8');
-        const panel = vscode.window.createWebviewPanel('g4TestWright.botReport', `${test.name} (${record?.name})`, vscode.ViewColumn.Active, {
+        const positionText = test.position ? ` #${test.position}` : '';
+        const iterationText = test.iteration ? `, iteration ${test.iteration}` : '';
+        const title = `${test.name}${positionText}${iterationText} (${record?.name})`;
+        const panel = vscode.window.createWebviewPanel('g4TestWright.botReport', title, vscode.ViewColumn.Active, {
             enableScripts: true,
             retainContextWhenHidden: true,
             localResourceRoots: WebviewPages.getResourceRoots(this._context)
