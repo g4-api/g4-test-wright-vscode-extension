@@ -29,6 +29,7 @@ const state = {
     repoPlans: [],
     appendMode: false,               // plan drop appends (true) or replaces (false)
     reportsFolderPath: '',           // reports folder (one folder per run)
+    isReportsFolderPicked: false,    // true once the user picked the reports folder; else it follows the manifest
     reportsList: [],
     reportsAppendMode: false,
     reportDateFilter: '',            // session-only, never persisted
@@ -228,8 +229,41 @@ function registerHostEvents() {
         await startDiscovery({ isKeepingFilters: true });
     });
 
+    // The manifest changed: follow its new Reports Folder unless the user picked a folder by hand.
+    g4Host.on('defaults:changed', setDefaults);
+
     g4Host.on('schedules:changed', setSchedules);
     g4Host.on('reports:changed', () => updateReports());
+}
+
+/**
+ * Applies new project defaults sent by the host after manifest.json changed.
+ *
+ * @remarks
+ * The Reports repository follows the manifest's Reports Folder until the user picks a folder by
+ * hand; a picked folder is kept. Runs always write to the manifest's folder, so following it keeps
+ * the repository listing the runs.
+ *
+ * @param {object} defaults - The project defaults, as sent when the page opened.
+ * @returns {Promise<void>}
+ */
+async function setDefaults(defaults) {
+    // Keep the new defaults for later readers (folder pickers, Allure, the next restore).
+    runtime.defaults = { ...runtime.defaults, ...defaults };
+
+    // A picked folder, or an unchanged one, needs no refresh.
+    const reportsFolder = runtime.defaults.reportsFolder || '';
+    const isFollowing = !state.isReportsFolderPicked && reportsFolder !== '' && reportsFolder !== state.reportsFolderPath;
+
+    if (!isFollowing) {
+        return;
+    }
+
+    // Point the repository at the new folder, list its runs, and save the session.
+    state.reportsFolderPath = reportsFolder;
+    writeLog(`Reports folder follows the project settings: ${reportsFolder}`, 'info');
+    await updateReports();
+    requestSave();
 }
 
 /**

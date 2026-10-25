@@ -130,6 +130,21 @@ export class TestWrightPanelProvider implements vscode.Disposable {
     }
 
     /**
+     * Sends the project defaults (folders, engine) to every open panel after manifest.json changed.
+     *
+     * @remarks
+     * A panel reads the defaults once when it opens; without this, a changed Reports Folder was
+     * known to the host (where runs are written) but not to open panels, which kept listing the old
+     * folder.
+     */
+    public updateDefaults(): void {
+        // Re-read the defaults once and send the same snapshot to every panel.
+        const defaults = this.getDefaults();
+
+        this._panels.forEach((_, panel) => this.postEvent(panel, 'defaults:changed', defaults));
+    }
+
+    /**
      * Tells every open panel that project files changed (bots or environments were added), so
      * each one discovers its bots and reads its environments again.
      */
