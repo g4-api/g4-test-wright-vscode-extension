@@ -105,7 +105,12 @@ export class RunService implements vscode.Disposable {
         const engine = Utilities.getEngineEndpoint();
         const client = new G4Client(engine);
         const usedReportNames = new Set<string>();
-        const log = (text: string, kind = 'muted'): void => this._onRunEvent.fire({ runId: request.runId, type: 'log', text, kind });
+        // Send each console line to the open panels and write it to the G4 Test Wright output channel too, so a run
+        // started with no panel open (for example a scheduled run) is still logged.
+        const log = (text: string, kind = 'muted'): void => {
+            this._onRunEvent.fire({ runId: request.runId, type: 'log', text, kind });
+            this.writeRunLog(text, kind);
+        };
 
         // Name the run the same way in every console line: its folder name, plus the schedule label for
         // a scheduled run, so the start, finish, cancel, and failure lines of one run are easy to match.
@@ -146,10 +151,22 @@ export class RunService implements vscode.Disposable {
                 await this.invokeRecords(request, passRecords, context);
             }
 
-            // Bots never started because of Stop are recorded as canceled.
+            // Bots never started because of Stop are recorded as canceled, and reported like any other result,
+            // so their rows show the reason and the console has a line for each.
             for (const record of records.filter((candidate) => candidate.status === 'queued')) {
                 record.status = 'canceled';
                 record.message = 'Canceled before it started.';
+
+                this._onRunEvent.fire({
+                    runId: request.runId,
+                    type: 'result',
+                    id: record.key,
+                    iteration: record.iteration,
+                    outcome: record.status,
+                    text: record.message
+                });
+                log(`${RunService.getStatusText(record.status)} ${RunService.getRecordLabel(record)} - ${record.message}`,
+                    RunService.getLogKind(record.status));
             }
 
             const finishedAt = new Date();
@@ -400,6 +417,19 @@ export class RunService implements vscode.Disposable {
             this._logger.error('Allure conversion failed.', undefined, error);
             log(`Allure conversion failed: ${error?.message ?? error}`, 'warn');
         }
+    }
+
+    // Writes one run console line to the G4 Test Wright output channel: failed and broken bots as warnings (a failed
+    // bot is a test outcome, not an extension error), everything else as information.
+    private writeRunLog(text: string, kind: string): void {
+        const isProblem = kind === 'fail' || kind === 'warn';
+
+        if (isProblem) {
+            this._logger.warning(text);
+            return;
+        }
+
+        this._logger.information(text);
     }
 
     // Overall run status: the worst bot status.
