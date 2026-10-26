@@ -47,12 +47,19 @@ function addTestsToPlan(ids, atIndex = state.plan.length) {
     state.plan.splice(atIndex, 0, ...ids.map(newPlanItem));
     showApp();
 
+    // Log every add here, so the + button and a drop onto the plan are both recorded.
+    writeLog(`Added ${ids.length} bot(s) to the plan.`, 'muted');
+
     // Read the new bots' columns, so items added after iterations exist get their rows.
     void updateDataColumns();
 }
 
 /**
- * Clears the entire plan (after confirmation).
+ * Clears the entire plan, and its iterations, after confirmation.
+ *
+ * @remarks
+ * The iterations are cleared with the plan: kept, they stayed hidden and made a new plan of bots
+ * without data run once per old iteration.
  *
  * @returns {Promise<void>}
  */
@@ -71,8 +78,15 @@ async function clearPlan() {
         return;
     }
 
+    // Clear the items and their iterations together, and record what was cleared.
+    const itemCount = state.plan.length;
+    const iterationCount = state.iterations.length;
+    const iterationsText = iterationCount > 0 ? ` and ${iterationCount} iteration(s)` : '';
+
     state.plan = [];
+    state.iterations = [];
     showApp();
+    writeLog(`Cleared the plan: ${itemCount} item(s)${iterationsText}.`, 'muted');
 }
 
 /**
@@ -378,8 +392,15 @@ function showPlanRow(item, index) {
         requestSave();
     });
 
+    // Removing the last item also drops the iterations, which hold no data without items, so a
+    // later plan does not inherit them.
     row.querySelector('.plan-remove').addEventListener('click', () => {
         state.plan = state.plan.filter((other) => other.uid !== item.uid);
+
+        if (state.plan.length === 0) {
+            state.iterations = [];
+        }
+
         showApp();
     });
 

@@ -47,9 +47,9 @@ const TREE_STATUS_ICONS = {
  * @returns {void}
  */
 function addTreeRowToPlan(ids) {
+    // addTestsToPlan logs the add, for this button and for a drop alike.
     if (ids.length > 0) {
         addTestsToPlan(ids);
-        writeLog(`Added ${ids.length} bot(s) to the plan.`, 'muted');
     }
 }
 

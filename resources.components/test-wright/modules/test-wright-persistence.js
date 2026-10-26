@@ -17,6 +17,7 @@ function newStateSnapshot() {
         environment: state.environment,
         repoFolderPath: state.repoFolderPath,
         reportsFolderPath: state.reportsFolderPath,
+        isReportsFolderPicked: state.isReportsFolderPicked,
         allureFolderPath: state.allureFolderPath,
         allureEnabled: state.allureEnabled,
         allureOpenInBrowser: state.allureOpenInBrowser,
@@ -77,7 +78,12 @@ async function restoreSession() {
     state.folderPath = saved?.folderPath ?? defaults.botsFolder ?? '';
     state.environment = saved?.environment || '';
     state.repoFolderPath = saved?.repoFolderPath ?? defaults.plansFolder ?? '';
-    state.reportsFolderPath = saved?.reportsFolderPath ?? defaults.reportsFolder ?? '';
+    // A reports folder the user picked is restored; otherwise the manifest's Reports Folder is used, so a
+    // changed Reports Folder is followed (sessions saved before this flag existed follow the manifest too).
+    state.isReportsFolderPicked = saved?.isReportsFolderPicked === true;
+    state.reportsFolderPath = state.isReportsFolderPicked
+        ? saved?.reportsFolderPath ?? ''
+        : defaults.reportsFolder ?? saved?.reportsFolderPath ?? '';
     state.allureFolderPath = saved?.allureFolderPath || '';
     state.allureEnabled = saved ? saved.allureEnabled !== false : true;
     state.allureOpenInBrowser = Boolean(saved?.allureOpenInBrowser);

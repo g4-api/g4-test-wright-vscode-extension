@@ -37,6 +37,12 @@ const G4_WORKFLOW_EDITOR_VIEW_TYPE = 'g4.workflowEditor';
 // The page's view type (also used to restore the panel after a reload).
 export const TEST_WRIGHT_VIEW_TYPE = 'g4TestWright.panel';
 
+// Title of the first panel; later panels add their number, as in 'G4 Test Wright (2)'.
+const PANEL_TITLE = 'G4 Test Wright';
+
+// Reads the number at the end of a panel title ('G4 Test Wright (3)' -> 3). Linear: anchored, one digit run.
+const PANEL_NUMBER_PATTERN = /\((\d+)\)$/;
+
 /**
  * Owns the Test Wright panels and answers their requests.
  *
@@ -98,7 +104,17 @@ export class TestWrightPanelProvider implements vscode.Disposable {
      * Opens a new Test Wright panel, even when others are open.
      */
     public newPanel(): void {
-        const title = this._panels.size === 0 ? 'G4 Test Wright' : `G4 Test Wright (${this._panels.size + 1})`;
+        // Number the panel with the lowest number not in use, so a new panel never repeats an open one's title
+        // (counting the open panels did, after the first one was closed).
+        const usedNumbers = new Set([...this._panels.keys()]
+            .map((openPanel) => TestWrightPanelProvider.getPanelNumber(openPanel.title)));
+        let panelNumber = 1;
+
+        while (usedNumbers.has(panelNumber)) {
+            panelNumber++;
+        }
+
+        const title = panelNumber === 1 ? PANEL_TITLE : `${PANEL_TITLE} (${panelNumber})`;
         const panel = vscode.window.createWebviewPanel(
             TEST_WRIGHT_VIEW_TYPE,
             title,
@@ -111,6 +127,21 @@ export class TestWrightPanelProvider implements vscode.Disposable {
         );
 
         this.attachPanel(panel);
+    }
+
+    /**
+     * Sends the project defaults (folders, engine) to every open panel after manifest.json changed.
+     *
+     * @remarks
+     * A panel reads the defaults once when it opens; without this, a changed Reports Folder was
+     * known to the host (where runs are written) but not to open panels, which kept listing the old
+     * folder.
+     */
+    public updateDefaults(): void {
+        // Re-read the defaults once and send the same snapshot to every panel.
+        const defaults = this.getDefaults();
+
+        this._panels.forEach((_, panel) => this.postEvent(panel, 'defaults:changed', defaults));
     }
 
     /**
@@ -182,6 +213,13 @@ export class TestWrightPanelProvider implements vscode.Disposable {
                 this._lastActivePanel = this._panels.keys().next().value;
             }
         });
+    }
+
+    // Reads the number of a panel from its title: 1 for the first panel, n for 'G4 Test Wright (n)'.
+    private static getPanelNumber(title: string): number {
+        const match = PANEL_NUMBER_PATTERN.exec(title);
+
+        return match ? Number(match[1]) : 1;
     }
 
     // Snapshot of the scheduler for the page.

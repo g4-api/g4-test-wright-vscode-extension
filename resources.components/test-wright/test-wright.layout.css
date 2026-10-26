@@ -509,11 +509,13 @@ body {
     white-space: nowrap;
 }
 
+/* A narrow window wraps the data button, status and remove button below the name, so the name keeps its width. */
 .plan-row {
     display: flex;
     flex-shrink: 0;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 10px;
+    gap: 4px 10px;
     padding: 7px 10px;
     border-width: 1px;
     border-style: solid;
@@ -536,12 +538,13 @@ body {
     text-align: right;
 }
 
+/* The name column never shrinks below a few characters; with min-width: 0 it vanished in a narrow window. */
 .plan-main {
     display: flex;
     flex: 1;
     flex-direction: column;
     gap: 2px;
-    min-width: 0;
+    min-width: 8ch;
 }
 
 .plan-name {
