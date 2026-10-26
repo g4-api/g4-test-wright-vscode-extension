@@ -198,7 +198,9 @@ async function selectReportsFolder() {
         return;
     }
 
+    // A picked folder is kept from now on, even when the manifest's Reports Folder changes.
     state.reportsFolderPath = folder;
+    state.isReportsFolderPicked = true;
     state.reportDateFilter = '';
     writeLog(`Reports folder selected: ${folder}`, 'info');
     await updateReports();

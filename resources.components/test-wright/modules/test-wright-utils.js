@@ -4,6 +4,9 @@
  * Page utilities: escaping, date and path helpers, and the empty-state markup.
  */
 
+// One hour, the length of the local time repeated when the clocks go back at the end of daylight saving.
+const HOUR_MILLISECONDS = 60 * 60 * 1000;
+
 // Display text per test status.
 const STATUS_LABELS = {
     'not-run': 'Not Run',
@@ -115,13 +118,46 @@ function parseDateTime(value) {
 }
 
 /**
+ * Parses "YYYY-MM-DD HH:MM" as the next local time that shows that date and time.
+ *
+ * @remarks
+ * When the clocks go back, one local hour happens twice, and a local date resolves to its first
+ * occurrence. When that one has already passed, the second occurrence (one hour later, with the
+ * same date and time on the clock) is used, so a run can still be scheduled in the repeated hour.
+ * Used for schedules only; other readers keep parseDateTime.
+ *
+ * @param {string} value - The text.
+ * @returns {number} Epoch milliseconds, or NaN when the text is not a date.
+ */
+function parseFutureDateTime(value) {
+    const time = parseDateTime(value);
+
+    // A time that is not a date, or is still ahead, needs no second look.
+    if (!Number.isFinite(time) || time > Date.now()) {
+        return time;
+    }
+
+    // An hour later shows the same date and time on the clock only inside a repeated hour.
+    const first = new Date(time);
+    const second = new Date(time + HOUR_MILLISECONDS);
+    const isRepeatedHour = first.getFullYear() === second.getFullYear()
+        && first.getMonth() === second.getMonth()
+        && first.getDate() === second.getDate()
+        && first.getHours() === second.getHours()
+        && first.getMinutes() === second.getMinutes();
+
+    return isRepeatedHour ? second.getTime() : time;
+}
+
+/**
  * Tests whether a date-time string is a valid future time.
  *
  * @param {string} value - The date-time string.
- * @returns {boolean} True when it parses to a time after now.
+ * @returns {boolean} True when it parses to a time after now, including the second occurrence of a
+ *     repeated hour (see parseFutureDateTime).
  */
 function testFutureDateTime(value) {
-    const time = parseDateTime(value);
+    const time = parseFutureDateTime(value);
 
     return Number.isFinite(time) && time > Date.now();
 }

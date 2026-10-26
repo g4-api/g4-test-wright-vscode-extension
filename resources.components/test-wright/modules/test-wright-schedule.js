@@ -26,7 +26,9 @@ async function addScheduledRun() {
 
     // Snapshot the items with their keys and data, and the plan's iterations, for the timed run.
     const items = newPlanFileItems(checkedItems).map((item) => ({ ...item, checked: true, data: getRunData(item) }));
-    const runAt = new Date(parseDateTime(value));
+    // Resolve the time as the next one showing that date and time, so the repeated hour of a
+    // daylight-saving fall-back can be scheduled; the host stores it as UTC ISO, which is unambiguous.
+    const runAt = new Date(parseFutureDateTime(value));
     const result = await g4Host.request('schedules:add', {
         runAt: runAt.toISOString(),
         label: '',

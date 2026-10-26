@@ -29,6 +29,11 @@
         "onStartupFinished",
         "onWebviewPanel:g4TestWright.panel"
     ],
+    "capabilities": {
+        "untrustedWorkspaces": {
+            "supported": true
+        }
+    },
     "license": "Apache-2.0",
     "main": "./dist/extension.js",
     "contributes": {

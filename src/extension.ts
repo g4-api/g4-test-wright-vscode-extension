@@ -52,7 +52,7 @@ export function activate(context: vscode.ExtensionContext): void {
         deserializeWebviewPanel: async (panel: vscode.WebviewPanel) => panelProvider.restorePanel(panel)
     }));
 
-    registerManifestWatcher(context);
+    registerManifestWatcher(context, panelProvider);
     newProjectFolders();
 
     logger.information(`G4 Test Wright activated. Engine: ${Utilities.getEngineEndpoint()}, project: ${Utilities.getProjectFolder() || '(no workspace)'}.`);
@@ -113,17 +113,20 @@ const registerLauncher = (context: vscode.ExtensionContext, panelProvider: TestW
 };
 
 /**
- * Re-reads the manifest (engine address, token, report folder, log level) when it changes, and
- * creates the project folders a new or moved reports folder needs.
+ * Re-reads the manifest (engine address, token, report folder, log level) when it changes,
+ * creates the project folders a new or moved reports folder needs, and sends the new defaults to
+ * the open panels.
  *
  * @param context - The extension context.
+ * @param panelProvider - Owns the Test Wright panels, which follow the new Reports Folder.
  */
-const registerManifestWatcher = (context: vscode.ExtensionContext): void => {
+const registerManifestWatcher = (context: vscode.ExtensionContext, panelProvider: TestWrightPanelProvider): void => {
     const watcher = vscode.workspace.createFileSystemWatcher('**/manifest.json');
     const onManifestChanged = (): void => {
         Utilities.updateManifest();
         Global.updateLogger();
         newProjectFolders();
+        panelProvider.updateDefaults();
     };
 
     context.subscriptions.push(
