@@ -6,6 +6,10 @@
  * generated folder is served from a local static server and shown in a VS Code panel or the
  * external browser.
  *
+ * Reports are air-gapped: the generated pages lose Allure's Google Analytics tag and get a Content
+ * Security Policy and a link guard, and the server sends the same policy, so a report never reaches
+ * another host.
+ *
  * RESOURCES:
  * Allure 3 CLI: https://allurereport.org/docs/v3/
  * Webview iframes and localhost: https://code.visualstudio.com/api/advanced-topics/remote-extensions#option-2-use-a-port-mapping
@@ -43,6 +47,61 @@ const CONTENT_TYPES: Record<string, string> = {
 
 // Upper bound for one report generation.
 const GENERATE_TIMEOUT_MILLISECONDS = 5 * 60 * 1000;
+
+// Content Security Policy of every Allure report page (air gap). The report loads only from its
+// own local server: scripts, styles, data, fonts, images, and frames. The browser refuses any other
+// host, so nothing leaves the machine, even when a later Allure version adds a remote call. Inline
+// code is the report's own start-up script; data: and blob: hold its icons and attachments.
+const ALLURE_CONTENT_SECURITY_POLICY = [
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-inline'",
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: blob:",
+    "font-src 'self' data:",
+    "media-src 'self' data: blob:",
+    "connect-src 'self'",
+    "frame-src 'self' data: blob:",
+    "worker-src 'self' blob:",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'none'"
+].join('; ');
+
+// Marks the air-gap block written into a report page.
+const AIRGAP_MARKER = 'data-g4-airgap';
+
+// Runs first in every report page, because the policy above cannot stop a navigation: a link to
+// another host does nothing when clicked, and window.open opens only an address of the report's own
+// server. A blank window is refused too: Allure's Playwright trace viewer opens one, sends it to
+// https://trace.playwright.dev and posts the trace to it. Allure's other links are the "Powered by"
+// footer and links from results; Test Wright results carry no links. Downloads use blob: addresses
+// of the report's own server and stay allowed.
+const AIRGAP_SCRIPT = `
+(() => {
+    const isLocal = (address) => {
+        try {
+            const text = String(address ?? '').trim();
+            const target = new URL(text, location.href);
+            const isPage = target.protocol === 'http:' || target.protocol === 'https:';
+            const isBlob = target.protocol === 'blob:';
+            return text !== '' && (isPage || isBlob) && new URL(target.href.replace(/^blob:/, '')).origin === location.origin;
+        } catch {
+            return false;
+        }
+    };
+    const stopExternalLink = (event) => {
+        const anchor = event.target instanceof Element ? event.target.closest('a[href]') : null;
+        if (anchor !== null && !isLocal(anchor.href)) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+        }
+    };
+    document.addEventListener('click', stopExternalLink, true);
+    document.addEventListener('auxclick', stopExternalLink, true);
+    const openWindow = window.open.bind(window);
+    window.open = (address, ...rest) => isLocal(address) ? openWindow(address, ...rest) : null;
+})();
+`;
 
 /**
  * Generates Allure reports and opens them.
@@ -261,7 +320,11 @@ export class AllureReportService implements vscode.Disposable {
     }
 
     /**
-     * Runs the Allure 3 CLI `generate` command.
+     * Runs the Allure 3 CLI `generate` command, then air-gaps the report pages.
+     *
+     * @remarks
+     * Allure's pages load Google Analytics. The report must not reach any other host, so a report
+     * whose pages cannot be air-gapped is reported as failed and never opened.
      *
      * @param resultsFolders - Results folders to read.
      * @param outputFolder - Report folder to write (replaced).
@@ -272,7 +335,17 @@ export class AllureReportService implements vscode.Disposable {
         const cliPath = path.join(this._context.extensionPath, 'node_modules', 'allure', 'cli.js');
         const configPath = await this.writeConfig();
         const args = [cliPath, 'generate', ...resultsFolders, '--output', outputFolder, '--name', reportName, '--config', configPath];
+        const error = await this.invokeAllureCli(args, outputFolder);
 
+        if (error !== null) {
+            return error;
+        }
+
+        return AllureReportService.updateReportPages(outputFolder);
+    }
+
+    // Runs the Allure CLI on VS Code's own Node runtime; resolves null on success, or the error text.
+    private invokeAllureCli(args: string[], outputFolder: string): Promise<string | null> {
         return new Promise((resolve) => {
             const output: string[] = [];
             const child = childProcess.spawn(process.execPath, args, {
@@ -354,9 +427,11 @@ export class AllureReportService implements vscode.Disposable {
 
                 const content = await fs.readFile(filePath);
 
+                // The policy header also guards a report page written before the air gap existed.
                 response.writeHead(200, {
                     'Content-Type': CONTENT_TYPES[path.extname(filePath).toLowerCase()] ?? 'application/octet-stream',
-                    'Cache-Control': 'no-store'
+                    'Cache-Control': 'no-store',
+                    'Content-Security-Policy': ALLURE_CONTENT_SECURITY_POLICY
                 });
                 response.end(content);
             } catch {
@@ -395,6 +470,90 @@ export class AllureReportService implements vscode.Disposable {
     <iframe src="${url}" title="${title}" data-test-id="allure-report-frame"></iframe>
 </body>
 </html>`;
+    }
+
+    // Air-gaps one report page: drops every script that loads from, or reports to, another host
+    // (Allure's Google Analytics tag and its gtag set-up), and writes the policy and the link guard
+    // first in <head>, so they apply before any other script runs. Returns null when the page has no
+    // <head> to write them into.
+    private static convertToAirgappedHtml(html: string): string | null {
+        // Keep the report's own scripts and drop the remote ones; plain text search, no regex.
+        const parts: string[] = [];
+        let position = 0;
+
+        while (position < html.length) {
+            const start = html.indexOf('<script', position);
+
+            if (start === -1) {
+                parts.push(html.slice(position));
+                break;
+            }
+
+            const closing = html.indexOf('</script>', start);
+            const end = closing === -1 ? html.length : closing + '</script>'.length;
+            const block = html.slice(start, end);
+
+            parts.push(html.slice(position, start));
+
+            if (!AllureReportService.testRemoteScript(block)) {
+                parts.push(block);
+            }
+
+            position = end;
+        }
+
+        // Write the policy and the link guard right after <head>.
+        const page = parts.join('');
+        const head = /<head(?:\s[^>]*)?>/i.exec(page);
+
+        if (head === null) {
+            return null;
+        }
+
+        const airgap = `\n    <meta http-equiv="Content-Security-Policy" content="${ALLURE_CONTENT_SECURITY_POLICY}" ${AIRGAP_MARKER}>`
+            + `\n    <script ${AIRGAP_MARKER}>${AIRGAP_SCRIPT}</script>`;
+        const insertAt = head.index + head[0].length;
+
+        return page.slice(0, insertAt) + airgap + page.slice(insertAt);
+    }
+
+    // True when a script block loads code from another host (src with a scheme and //, or just //),
+    // or is Google Analytics set-up code (gtag calls; report data is Base64 and never holds them).
+    private static testRemoteScript(block: string): boolean {
+        const openingTag = block.slice(0, block.indexOf('>') + 1).toLowerCase();
+        const isRemoteSource = /\ssrc\s*=\s*["']?(?:[a-z][a-z0-9+.-]*:)?\/\//.exec(openingTag) !== null;
+        const isAnalytics = block.includes('googletagmanager') || block.includes('gtag(');
+
+        return isRemoteSource || isAnalytics;
+    }
+
+    // Air-gaps every HTML page of a generated report (index.html, and awesome/index.html when Allure
+    // writes one). Returns null on success, or the error text when a page cannot be air-gapped.
+    private static async updateReportPages(outputFolder: string): Promise<string | null> {
+        // Find the pages in every subfolder, so no page of the report is served unchanged.
+        const entries = await fs.readdir(outputFolder, { recursive: true });
+        const pages = entries.filter((entry) => entry.toLowerCase().endsWith('.html'));
+
+        // Rewrite each page in place; one page without <head> stops the report from opening.
+        for (const page of pages) {
+            const pagePath = path.join(outputFolder, page);
+            const html = await fs.readFile(pagePath, 'utf8');
+
+            // A page written by an earlier run of this method already holds the air gap.
+            if (html.includes(AIRGAP_MARKER)) {
+                continue;
+            }
+
+            const airgappedHtml = AllureReportService.convertToAirgappedHtml(html);
+
+            if (airgappedHtml === null) {
+                return `The Allure report page ${page} has no <head>, so it cannot be kept off the network; the report was not opened.`;
+            }
+
+            await fs.writeFile(pagePath, airgappedHtml, 'utf8');
+        }
+
+        return null;
     }
 
     // True when a folder holds at least one Allure result file.
