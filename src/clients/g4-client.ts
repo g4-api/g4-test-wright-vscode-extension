@@ -71,7 +71,7 @@ export class G4Client {
                 ok: false,
                 status: 0,
                 aborted: isAbort,
-                error: isAbort ? 'Canceled.' : `Engine unreachable at ${this._baseUrl}: ${error?.cause?.message ?? error?.message ?? error}`
+                error: isAbort ? 'Canceled.' : `Engine unreachable at ${this._baseUrl}: ${G4Client.getErrorReason(error)}`
             };
         }
     }
@@ -114,7 +114,7 @@ export class G4Client {
 
             return response.ok ? null : `HTTP ${response.status} ${response.statusText}: ${G4Client.getShortText(await response.text())}`;
         } catch (error: any) {
-            return `${error?.cause?.message ?? error?.message ?? error}`;
+            return G4Client.getErrorReason(error);
         }
     }
 
@@ -160,6 +160,35 @@ export class G4Client {
             request.on('error', reject);
             request.end(body);
         });
+    }
+
+    // Reads the reason of a failed request, the most specific text first. fetch keeps the network
+    // failure in its cause ('fetch failed' itself says little), and node:http throws it directly.
+    // A refused connection to localhost is an AggregateError with an EMPTY message and one inner
+    // error per address tried (::1 and 127.0.0.1), so empty texts are skipped and the inner
+    // messages are read; the error code is the last resort.
+    private static getErrorReason(error: any): string {
+        // A thrown string is already the reason.
+        if (typeof error === 'string') {
+            return error;
+        }
+
+        const getText = (value: any): string => typeof value === 'string' ? value.trim() : '';
+        const getInnerText = (value: any): string => Array.isArray(value?.errors)
+            ? value.errors.map((inner: any) => getText(inner?.message)).filter((text: string) => text !== '').join('; ')
+            : '';
+
+        // Take the first non-empty text, from the cause to the error, and from messages to codes.
+        const reasons = [
+            getText(error?.cause?.message),
+            getInnerText(error?.cause),
+            getText(error?.message),
+            getInnerText(error),
+            getText(error?.cause?.code),
+            getText(error?.code)
+        ];
+
+        return reasons.find((reason) => reason !== '') ?? 'Unknown error.';
     }
 
     // Keeps error bodies short enough for one console line.
