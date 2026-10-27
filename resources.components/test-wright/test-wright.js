@@ -229,7 +229,8 @@ function registerHostEvents() {
         await startDiscovery({ isKeepingFilters: true });
     });
 
-    // The manifest changed: follow its new Reports Folder unless the user picked a folder by hand.
+    // The manifest changed: re-check a new engine address, and follow its new Reports Folder unless
+    // the user picked a folder by hand.
     g4Host.on('defaults:changed', setDefaults);
 
     g4Host.on('schedules:changed', setSchedules);
@@ -240,7 +241,7 @@ function registerHostEvents() {
  * Applies new project defaults sent by the host after manifest.json changed.
  *
  * @remarks
- * The Reports repository follows the manifest's Reports Folder until the user picks a folder by
+ * A changed engine address re-checks the engine chip. The Reports repository follows the manifest's Reports Folder until the user picks a folder by
  * hand; a picked folder is kept. Runs always write to the manifest's folder, so following it keeps
  * the repository listing the runs.
  *
@@ -249,7 +250,16 @@ function registerHostEvents() {
  */
 async function setDefaults(defaults) {
     // Keep the new defaults for later readers (folder pickers, Allure, the next restore).
+    const previousEngine = runtime.defaults.engine;
     runtime.defaults = { ...runtime.defaults, ...defaults };
+
+    // A new engine address (g4Server in manifest.json) is checked at once, so the engine chip never
+    // shows the old address; the chip updates itself, so the folder refresh below does not wait.
+    const isEngineChanged = runtime.defaults.engine !== previousEngine;
+
+    if (isEngineChanged) {
+        void updateEngineStatus();
+    }
 
     // A picked folder, or an unchanged one, needs no refresh.
     const reportsFolder = runtime.defaults.reportsFolder || '';
