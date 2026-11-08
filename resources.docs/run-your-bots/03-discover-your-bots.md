@@ -39,7 +39,7 @@ How Test Wright decides what is a bot:
 ![The parts of the Bots Tree](images/03-discover-your-bots/tree-parts.png)
 
 1. **Counts** — how many bots were found, and how many are visible right now (filters can hide some).
-2. **Tree buttons** — expand every suite, collapse every suite, and clear the tree.
+2. **Tree buttons** — expand every suite, collapse every suite, and clear the tree (see "Clear the tree" below).
 3. **A suite** — a folder of bots. Click it to open or close it. The number on the right is how many bots it holds.
 4. **A bot** — one test. Its name is the file name without the extension.
 5. **Tag** — the bot's first tag. A **+1** next to it means it has more tags.
@@ -60,6 +60,20 @@ Click a row once, then:
 | `Home` `End` | Jump to the first or last row |
 | `Enter` | Add the row's bots to the end of the plan |
 | `Space` | Open the bot, or open/close the suite |
+
+### Clear the tree
+
+The last of the three tree buttons is **Clear tree**. It empties the Bots Tree, for example before you point Test Wright at another folder.
+
+![The Clear tree question](images/03-discover-your-bots/clear-tree.png)
+
+TODO(screenshot): images/03-discover-your-bots/clear-tree.png - the Clear tree question over the page, with the Cancel and Clear tree buttons.
+
+1. **Clear tree** — the button is greyed out while the tree is empty and while a run is going.
+2. **The question** — `This clears all discovered bots from the tree. Run Discover again to repopulate it. The plan is unaffected. Continue?`
+3. **Clear tree** — confirms. Click **Cancel** to keep the tree.
+
+After you confirm, the tree is empty, the selected tags are cleared, and the open or closed state of the suites is forgotten. The console says `Tree cleared. Run Discover to repopulate.` Your plan and your bot files are not touched, and the text in the filter box stays. Press **Discover Bots** to fill the tree again.
 
 ---
 
@@ -119,6 +133,7 @@ Show only the bots tagged **slow**, then open **practice-pass** in the Workflow 
 - [ ] You know the difference between a **suite** and a **bot**
 - [ ] You filtered by name and by tag, then cleared both
 - [ ] You opened a bot in the Workflow Editor
+- [ ] You know that **Clear tree** empties the tree but leaves the plan alone
 
 ---
 

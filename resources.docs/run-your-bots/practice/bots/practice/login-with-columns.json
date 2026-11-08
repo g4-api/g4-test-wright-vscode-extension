@@ -1,0 +1,125 @@
+{
+    "authentication": {
+        "token": "",
+        "password": "",
+        "username": ""
+    },
+    "driverParameters": {
+        "capabilities": {
+            "alwaysMatch": {
+                "browserName": "Uia",
+                "uia:options": {
+                    "label": "practice"
+                }
+            }
+        },
+        "driver": "SimulatorDriver",
+        "driverBinaries": ".",
+        "firstMatch": [
+            {}
+        ]
+    },
+    "reference": {
+        "id": "login-with-columns",
+        "name": "login-with-columns",
+        "description": "Types a user and a password that come from the data columns User and Password.",
+        "tags": [
+            "data"
+        ]
+    },
+    "settings": {
+        "automationSettings": {
+            "loadTimeout": 60000,
+            "maxParallel": 1,
+            "returnStructuredResponse": true,
+            "searchTimeout": 15000
+        },
+        "screenshotsSettings": {
+            "outputFolder": ".",
+            "convertToBase64": true,
+            "returnScreenshots": true,
+            "onExceptionOnly": false
+        },
+        "pluginsSettings": {
+            "externalRepositories": [],
+            "servers": {}
+        },
+        "exceptionsSettings": {
+            "returnExceptions": true
+        },
+        "environmentsSettings": {
+            "defaultEnvironment": "SystemParameters",
+            "returnEnvironment": true
+        }
+    },
+    "stages": [
+        {
+            "reference": {
+                "id": "practicestage1",
+                "name": "G4™ Default Stage",
+                "description": "A container that holds jobs."
+            },
+            "jobs": [
+                {
+                    "reference": {
+                        "id": "practicejob1",
+                        "name": "G4™ Default Job",
+                        "description": "A container that holds actions."
+                    },
+                    "rules": [
+                        {
+                            "$type": "Action",
+                            "pluginName": "WaitFlow",
+                            "reference": {
+                                "id": "practice0011"
+                            },
+                            "capabilities": {
+                                "displayName": "Wait For The Page"
+                            },
+                            "locator": "Xpath",
+                            "argument": "{{$ --Condition:ElementExists --Timeout:5000}}",
+                            "onElement": "//positive"
+                        },
+                        {
+                            "$type": "Action",
+                            "pluginName": "SendKeys",
+                            "reference": {
+                                "id": "practice0012"
+                            },
+                            "capabilities": {
+                                "displayName": "Type The User"
+                            },
+                            "locator": "Xpath",
+                            "argument": "{{$ columns.User }}",
+                            "onElement": "//positive"
+                        },
+                        {
+                            "$type": "Action",
+                            "pluginName": "SendKeys",
+                            "reference": {
+                                "id": "practice0013"
+                            },
+                            "capabilities": {
+                                "displayName": "Type The Password"
+                            },
+                            "locator": "Xpath",
+                            "argument": "{{$ columns.Password }}",
+                            "onElement": "//positive"
+                        },
+                        {
+                            "$type": "Action",
+                            "pluginName": "CloseBrowser",
+                            "reference": {
+                                "id": "practice0014"
+                            },
+                            "capabilities": {
+                                "displayName": "Close Browser"
+                            },
+                            "locator": "Xpath"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

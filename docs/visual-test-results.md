@@ -26,7 +26,7 @@ BUG-5 made the first attempt of C5 misleading (an extra plan was saved).
 | --- | --- | --- | --- | --- |
 | BUG-5 | Medium | Plans | Pressing **Enter** in **Save plan to repository** saves the plan and immediately opens a second save dialog with a new default name. Focus returns to the toolbar's save button and the same Enter activates it. A following click on the dialog saves an unwanted `g4-plan-<timestamp>.json`. Reproduced twice. | C4, C5 |
 | BUG-1 | Medium | Environments | The engine rejects environment names that are not `\w+` (for example `visual-staging`) and non-string values with HTTP 400. Test Wright lists such files without a warning; the run only logs that the sync failed. | Preparation |
-| FINDING-2 | Info (engine) | Environments | The engine's `Get-Parameter` macro reads `SystemParameters` unless the bot passes `--Environment:`; it ignores `environmentsSettings.defaultEnvironment`. Selecting an environment uploads it, but bots see it only when they name it. | Preparation |
+| FINDING-2 | Info (engine) | Environments | The engine's `Get-Parameter` macro reads `SystemParameters` unless the bot passes `--Environment:`; it ignores `environmentsSettings.defaultEnvironment`. Selecting an environment uploads it, but bots see it only when they name it. **Resolved:** Test Wright sends `settings.environmentsSettings.defaultEnvironment` in every bot request (`src/services/bot-request-builder.ts:52-57`) and uploads the file first (`src/services/run-service.ts:134`, `updateEnvironment` at 384-407); the engine-side fallback is in the fixed table below. | Preparation |
 | BUG-8 | Low | Tree | The last-run icon is not updated for a bot that was canceled before it started: after Stop, `vt-slow-b` kept the ✓ from its previous run. | D7, E6 |
 | BUG-3 | Low | Layout | After an editor tab was opened and closed over Test Wright, the left sidebar shrank (≈320 → 250 px) and the right column too. Seen once; not reproduced on later tab switches. | B5 → C1 |
 | BUG-6 | Low | Console | The first time the console opens it shows the oldest lines, not the newest. | C7 |
@@ -54,6 +54,28 @@ BUG-5 made the first attempt of C5 misleading (an extra plan was saved).
 | FINDING-11 | The Run Report modal uses size `fit`; the viewer is 920 px wide. | Visually (2026-10-10): the summary fills the modal. |
 | FINDING-12 | The G4 report colors a plugin red when one of its assertions evaluated to false (plugin tree and timeline). | Visually (2026-10-10): red dot on the failed Assert in the plugin tree and the timeline. |
 | Extra | Escape now closes the environment picker and the tag filter while the focus is on their trigger. | Visually. |
+
+## Code check of the fixes (2026-11-08)
+
+Each fix listed above was looked up in the code. "Found" means the change is in the source as described. It does not mean it was run again.
+
+| ID | Where it is in the code | Result |
+| --- | --- | --- |
+| BUG-5 | `resources.components/test-wright/modules/test-wright-dialogs.js:56-58` calls `event.preventDefault()` on the Enter of the prompt | Found |
+| BUG-1 | `src/services/bots-discovery-service.ts:94-117` lists a bad name or a non-object file with an issue. `src/clients/g4-client.ts` (`newEnvironmentBody`) sends values as text. `src/services/run-service.ts:389-392` explains a skipped upload. `resources.components/g4-environment-picker/g4-environment-picker.js:176-194` disables an entry with an issue | Found |
+| FINDING-2 | Test Wright side: `src/services/bot-request-builder.ts:52-57`. Engine side: `g4-plugins/src/G4.Plugins.Common/GetParameter/GetApplicationParameter.cs:19-21` | Found. Needs an engine built from these plugins |
+| BUG-8 | `resources.components/test-wright/modules/test-wright-runner.js:83-84` marks every bot of the run as queued | Found |
+| BUG-3 | `resources.components/test-wright/modules/test-wright-layout.js:342` clamps the drawn width only | Found |
+| BUG-6 | `resources.components/test-wright/modules/test-wright-console.js:17-19` scrolls to the end after the drawer is laid out | Found |
+| BUG-4 | `resources.components/test-wright/modules/test-wright-dialogs.js:41` sets `size` to `fit` | Found |
+| BUG-7 | `resources.components/test-wright/modules/test-wright-utils.js:29` (`formatCount`), `test-wright-reports.js:250,254` (counts, canceled), `src/services/run-service.ts` (a run with canceled bots is logged as a warning) | Found |
+| FINDING-9 | `src/services/allure-report-service.ts:577-584` writes `allurerc.json` with the categories | Found |
+| FINDING-10 | `src/services/allure-converter.ts:492-493` writes `g4.environment` and `g4.engine` as labels. `newParameters` (lines 294-311) holds only Position, Iteration, and the row values | Found |
+| FINDING-11 | `resources.components/test-wright/modules/test-wright-reports.js:123` sets `size` to `fit`. `test-wright.layout.css:821` sets the viewer width | Found |
+| FINDING-12 | `resources.components/automation-report/automation-report.js:276-292` colors a plugin red when one of its assertions evaluated to false | Found |
+| Extra | `resources.components/g4-environment-picker/g4-environment-picker.js:113-116` and `resources.components/g4-tag-filter/g4-tag-filter.js:99-102` close the open panel on Escape | Found |
+
+No fix in the table was missing from the code. No case in the plan was run again for this check.
 
 ## Notes per section
 

@@ -63,7 +63,9 @@ Click the **Categories** tab. It groups the problems of the run by kind:
 
 1. **Categories** — the tab.
 2. **Failed assertions** — bots with a check that was false.
-3. **Exceptions (warnings)** — bots that had a problem on the way.
+3. **Exceptions (warnings)** — bots that ended broken or with a warning, for a reason other than the engine.
+4. **Engine or transport errors** — bots that ended broken because the engine was unreachable or answered with an HTTP error.
+5. **Canceled** — bots that were stopped before they finished.
 
 Click a category to see its bots.
 
