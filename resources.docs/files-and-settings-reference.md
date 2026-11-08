@@ -42,9 +42,9 @@ Test Wright reads the project `manifest.json`. It has no settings of its own in 
 | `authentication` (other keys) | none | `src/services/bot-request-builder.ts:39` | Fills only the keys a bot leaves out |
 | `driverParameters` | none | `src/services/bot-request-builder.ts:47` | Fills only the keys a bot leaves out, recursively |
 | `settings` (engine sections) | none | `src/services/bot-request-builder.ts:48` | Fills only the keys a bot leaves out, recursively |
-| `settings.clientLogConfiguration.logLevel` | `information` | `src/extensions/utilities.ts:108-125` | Level of the "G4 Test Wright" output channel |
-| `settings.clientLogConfiguration.sourceOptions` | `{ "filter": "include", "sources": [] }` | `src/extensions/utilities.ts:119` | Which logger names are written |
-| `settings.clientLogSettings` | none | `src/extensions/utilities.ts:108-111` | Older name for the log section. It is read only when `clientLogConfiguration` is absent |
+| `settings.clientLogSettings.logLevel` | `information` | `src/extensions/utilities.ts:101-108` | Level of the "G4 Test Wright" output channel |
+| `settings.clientLogSettings.sourceOptions` | `{ "filter": "include", "sources": [] }` | `src/extensions/utilities.ts:105` | Which logger names are written |
+| `settings.clientLogConfiguration` | none | `src/extensions/utilities.ts:101` | The name G4 Studio's Settings Editor writes. It is read only when `clientLogSettings` is absent |
 | `settings.clientReportSettings.reportsFolder` | `.` | `src/extensions/utilities.ts:193` | Parent of the `reports` folder, relative to the project folder |
 
 ### The merge rule
@@ -59,7 +59,7 @@ Test Wright builds one request per bot from the bot file and the manifest.
 | Client-only settings are never sent | `clientLogConfiguration`, `clientLogSettings`, `clientReportSettings`, `recorderSettings` and `queueManagerSettings` are removed from the manifest settings before the merge | `src/services/bot-request-builder.ts:14-20, 92-98` |
 | A selected environment is added | `settings.environmentsSettings.defaultEnvironment` is set to the environment name | `src/services/bot-request-builder.ts:52-57` |
 
-A manifest that holds both `clientLogConfiguration` and `clientLogSettings` uses `clientLogConfiguration`. Keep only one of them.
+A manifest that holds both `clientLogSettings` and `clientLogConfiguration` uses `clientLogSettings`. Keep only one of them.
 
 ## Engine calls
 

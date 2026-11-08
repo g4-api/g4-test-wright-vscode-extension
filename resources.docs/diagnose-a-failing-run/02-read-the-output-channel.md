@@ -105,7 +105,7 @@ The level comes from `manifest.json`. Add this under `settings`:
 
 If the manifest has no log settings, or no `logLevel`, the level is `information`.
 
-**Which key is read?** Test Wright reads `settings.clientLogConfiguration`, the same key G4 Studio's Settings Editor writes. When that key is absent, it reads the older `settings.clientLogSettings`. Keep only `clientLogConfiguration`: when both exist, `clientLogConfiguration` wins.
+**Which key is read?** Test Wright reads `settings.clientLogSettings` first. When that key is absent, it reads `settings.clientLogConfiguration`, the key G4 Studio's Settings Editor writes. Keep only one of them: when both exist, `clientLogSettings` wins.
 
 > **💡 Tip:** Today the extension writes **information**, **warning**, and **error** entries only. It has no **debug** or **trace** entries, so those two levels show the same lines as **information**. Use **warning** to hide the normal run lines and keep the failed bots.
 
@@ -127,7 +127,7 @@ TODO(verify): the extension rebuilds its logger when you save `manifest.json`, b
 | The channel list has no **G4 Test Wright** | The extension has not started yet | Open Test Wright once. The channel is created at start-up. |
 | The channel is empty | `logLevel` is `none`, or the `sources` filter leaves every logger out | Set `logLevel` to `information` and clear `sources`. |
 | Nothing changes after you edit the level | The manifest is not valid JSON, or the key is under the wrong object | Check that the keys sit under `settings`, and reload the window. |
-| The level you set is ignored | Both `clientLogSettings` and `clientLogConfiguration` are in the manifest | Remove `clientLogSettings`. It is read only when `clientLogConfiguration` is absent. |
+| The level you set is ignored | Both `clientLogSettings` and `clientLogConfiguration` are in the manifest | Remove `clientLogSettings`, or edit it instead. `clientLogSettings` wins when both are present. |
 
 ---
 

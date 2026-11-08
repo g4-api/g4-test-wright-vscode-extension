@@ -65,8 +65,8 @@ Find your symptom below. Each entry says what you see, why it happens, and what 
 ## The log level does not change
 
 - **Symptom:** You edited `logLevel` and the channel looks the same.
-- **Cause:** The keys are not under `settings`, the file is not valid JSON, or both `clientLogSettings` and `clientLogConfiguration` are in the manifest. `clientLogConfiguration` wins and `clientLogSettings` is ignored. The services that started with the window also keep their first logger.
-- **Fix:** Keep only `settings.clientLogConfiguration`, then run **Developer: Reload Window**. See [How to read the output channel](02-read-the-output-channel.md).
+- **Cause:** The keys are not under `settings`, the file is not valid JSON, or both `clientLogSettings` and `clientLogConfiguration` are in the manifest. `clientLogSettings` wins and `clientLogConfiguration` is ignored. The services that started with the window also keep their first logger.
+- **Fix:** Keep only one of `settings.clientLogSettings` and `settings.clientLogConfiguration`, then run **Developer: Reload Window**. See [How to read the output channel](02-read-the-output-channel.md).
 
 ---
 
