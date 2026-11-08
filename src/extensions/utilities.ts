@@ -95,10 +95,22 @@ export class Utilities {
      * Resolves the log settings from the manifest, or information-level defaults.
      *
      * @returns The log settings.
+     *
+     * @remarks
+     * The manifest key is `settings.clientLogConfiguration`, the same key G4 Studio writes and reads.
+     * The older `settings.clientLogSettings` key is read only when the newer key is absent, so a
+     * manifest that holds both uses `clientLogConfiguration`.
      */
     public static getLogSettings(): LogSettings {
         const settings = this.getManifest()?.settings;
-        const configuration = settings?.clientLogSettings ?? settings?.clientLogConfiguration;
+
+        // Prefer the current key and fall back to the legacy key so older manifests keep working.
+        let configuration = settings?.clientLogConfiguration;
+
+        if (configuration === undefined || configuration === null) {
+            configuration = settings?.clientLogSettings;
+        }
+
         const isConfiguration = configuration !== undefined && configuration !== null && configuration.logLevel;
 
         if (isConfiguration) {

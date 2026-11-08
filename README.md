@@ -55,6 +55,20 @@ The G4 Test Wright side bar has a **Documentation** view under **Test Wright**. 
 * **Allure 3 built in** — runs write Allure results to `reports/allure-<run>`, and Test Wright builds the Allure 3 report for one run or merges all of them, in a VS Code tab or your browser. No Java needed.
 * **Scheduling** — schedule up to five runs; they fire even when the Test Wright tab is closed.
 
+## Commands
+
+Every command is listed under the `G4 Test Wright` category in the Command Palette. Type `G4 Test Wright:` to filter them.
+
+| Command id | Title | Where it appears | What it does | Notes |
+| --- | --- | --- | --- | --- |
+| `TestWright.Show` | Open Test Wright | Command Palette | Opens the Test Wright tab, or reveals the last one. | Use it to come back to your plan. |
+| `TestWright.OpenNew` | Open New Test Wright Tab | Command Palette; the **Open Test Wright** link in the launcher view | Opens another Test Wright tab, even when one is open. | Tabs share one saved session. |
+| `TestWright.AddPracticeBots` | Add Practice Bots | Command Palette; the **Add Practice Bots** link in the launcher view | Copies the practice bots into the open project. | Needs a G4 project (the folder that holds `manifest.json`). Existing files are kept. |
+| `TestWright.ShowRunReport` | Open Run Report | Explorer menu for a `run.json` file | Opens the summary of that run. | Hidden from the Command Palette. Select a `run.json` first. |
+| `TestWright.ConvertRunToAllure` | Convert Run to Allure Results | Explorer menu for a `run.json` file | Writes the Allure results (`allure-<run>/results`) for that run. | Hidden from the Command Palette. Select a `run.json` first. |
+| `TestWright.RefreshDocuments` | Refresh Documentation | Title bar of the **Documentation** view | Reads the learning paths folder again. | Hidden from the Command Palette. |
+| `TestWright.ShowComponentGallery` | Show Component Gallery (Development) | Command Palette, only in the Extension Development Host | Opens the gallery of the `g4-*` webview components. | For contributors. |
+
 ---
 
 ## How It Works
@@ -191,3 +205,7 @@ Press **F5** in VS Code to start an Extension Development Host. In that host, **
 * The **G4 Engine Client** extension (`g4-api.g4-engine-client`) — installed automatically with Test Wright, at its latest Marketplace version; it opens bots in the G4 Workflow Editor
 * A compatible **G4 Engine backend** — local (via the [G4 sandbox](https://github.com/g4-api/g4-sandbox)) or remote
 * Node.js — only for extension development/build
+
+## Contributing and builds
+
+Build tools, test commands, version numbers, Docker images and development ports are in the [build, test and release guide](../g4-github-actions/docs/build-test-release.md).

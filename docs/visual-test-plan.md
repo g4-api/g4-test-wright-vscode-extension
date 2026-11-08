@@ -26,6 +26,9 @@ All bots live under `bots/visual-tests/` and use `SimulatorDriver` (no token: th
 | `screens/vt-screenshots.g4bot` | `visual-tests/screens` | visual | WaitFlow, 2 × SaveScreenshot (Base64), CloseBrowser | Passed, 2 screenshots in Allure |
 | `slow/vt-slow-a.g4`, `slow/vt-slow-b.g4` | `visual-tests/slow` | slow | Wait 8000 ms, CloseBrowser | Passed (about 8 s each) |
 
+Sections H and I use the practice bot `practice/login-with-columns.json`, added with **G4 Test Wright: Add Practice Bots**.
+It is a SimulatorDriver bot with two column placeholders, `{{$ columns.User }}` and `{{$ columns.Password }}`.
+
 Environment file: `environments/VisualStaging.json` with `{ "VtNamePattern": "mock attribute value \\d+" }`.
 Before the run, `VisualStaging` is removed from the engine so the first environment check fails.
 
@@ -38,7 +41,7 @@ on screen (or, where noted, on disk).
 
 | ID | Steps | Expected |
 | --- | --- | --- |
-| A1 | Close every Test Wright tab. Click the flask in the Activity Bar. | A **G4 Test Wright** tab opens and the side bar collapses. |
+| A1 | Close every Test Wright tab. Click the G4 icon (the G4 mark with a check mark) in the Activity Bar. | A **G4 Test Wright** tab opens and the side bar collapses. |
 | A2 | Look at the header. | Bots folder = project `bots`, Environment = `(none)`, engine dot green, status **Ready**/**Idle**. |
 | A3 | Press **Discover Bots**. | Tree shows suites `nested`, `visual-tests` (with `screens`, `slow`) and root bots; **10 discovered**; folder and file icons; indent guides. |
 | A4 | Type `vt-` in the filter. | Only the 7 visual-test bots are visible; **visible** = 7. Clear the filter. |
@@ -109,8 +112,35 @@ on screen (or, where noted, on disk).
 | G2 | Type label `Visual nightly` on the schedule. | Label kept. |
 | G3 | Schedule a second run and cancel it with **×**. | It disappears. |
 | G4 | Wait for G1's time. | Run starts on its own; a run labeled `Visual nightly` appears in the reports. |
-| G5 | With a Test Wright tab open, click the flask; in the side bar click **Open Test Wright**. | A second tab **G4 Test Wright (2)** opens; side bar stays open. |
+| G5 | With a Test Wright tab open, click the G4 icon in the Activity Bar; in the side bar click **Open Test Wright**. | A second tab **G4 Test Wright (2)** opens; side bar stays open. |
 | G6 | Run `vt-slow-a` in tab 2. | Tab 2's console shows the run; tab 1's console does not. |
+
+### H. Iterations and data
+
+Precondition: run **Add Practice Bots**, press **Discover Bots**, and put `login-with-columns` alone in the plan.
+
+| ID | Steps | Expected |
+| --- | --- | --- |
+| H1 | Click **Edit iterations**. | A modal titled **Iterations** opens with **Import** and **Export** in its header. It reads `No iterations: the plan runs once, and each bot uses its own data source. Add an iteration to run the suite with data.` |
+| H2 | Click the add button twice. Fill `User` and `Password` in both rows. Close the modal. | Rows **Iteration 1** and **Iteration 2** show the columns `User` and `Password`. The **iterations** counter shows 2. |
+| H3 | Clear the `Password` cell of iteration 2. Press **Run**. | The run does not start. The console reads `Run refused: 1 empty value(s) to fill: #1 login-with-columns iteration 2 'Password'.` and the sheet opens. |
+| H4 | Fill the cell again. Switch off both iterations with **Include**. Press **Run**. | The console reads `Every iteration is excluded: include at least one iteration to run the plan.` |
+| H5 | Switch both iterations on. Press **Run**. | The console shows `Iteration 1 (1 of 2).` and `Iteration 2 (2 of 2).`, each followed by a result line for `login-with-columns.json #1, iteration 1` and `iteration 2`. |
+| H6 | Open the new run folder. | It holds `run.json` and two reports named `practice.login-with-columns.p1.i1.g4rpt` and `practice.login-with-columns.p1.i2.g4rpt`. `run.json` has `"iterations": 2`, and each test holds the `values` that were sent. |
+| H7 | Click **Export** in the iterations modal and save `exports/visual-iterations.json`. Remove both iterations. Click **Import** and pick the file. | Both rows come back with their values. |
+| H8 | In the H5 Run Report, press **Open Allure**. Open a `login-with-columns` test. | The test has the parameters `Iteration` (1 or 2), `User`, and `Password`. |
+
+### I. Air-gapped Allure report
+
+Precondition: the H5 run exists, and Allure collection is on.
+
+| ID | Steps | Expected |
+| --- | --- | --- |
+| I1 | In the Run Report, press **Open Allure**. | The report opens in a VS Code tab from `http://127.0.0.1:<port>/`, a random local port. |
+| I2 | Turn off the network (airplane mode or disable the adapter). Close the report tab. Press **Open Allure** again. | The report opens with the same tests. Nothing waits for a remote site. |
+| I3 | Scroll to the footer of the report. Click **Powered by Allure**. | Nothing happens. No browser window opens and the page does not navigate. |
+| I4 | Turn **Browser** on in the **Allure Reports** section, then press **Open Allure** in the H5 Run Report. | The report opens at an `http://127.0.0.1:<port>/` address, and I3 behaves the same way. |
+| I5 | Open an `.html` page of `reports/allure-<run>/report` as text. | Right after `<head>`, the page holds a `Content-Security-Policy` meta tag with `default-src 'self'` and a script marked `data-g4-airgap`. |
 
 ## Reporting
 

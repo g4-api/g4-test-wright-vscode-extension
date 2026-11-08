@@ -24,3 +24,5 @@ node_modules/**/*.d.ts
 node_modules/**/*.d.mts
 node_modules/**/*.d.cts
 node_modules/**/*.md
+
+scripts/**

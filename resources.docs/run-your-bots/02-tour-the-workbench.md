@@ -91,6 +91,29 @@ Click the Test Wright icon in the Activity Bar while Test Wright is already open
 
 Each tab has its own plan, and its console shows only the runs started from that tab. Scheduled runs (Module 10) show in every tab.
 
+### Open a tab from the Command Palette
+
+Press `F1` (or `Ctrl+Shift+P`, `Cmd+Shift+P` on a Mac) and type `Test Wright`. Two commands open the page:
+
+| Command | What it does |
+| --- | --- |
+| **G4 Test Wright: Open New Test Wright Tab** | Opens one more tab, every time. This is the command behind the **Open Test Wright** button. |
+| **G4 Test Wright: Open Test Wright** | Shows the tab you used last. It opens a tab only when none is open. |
+
+### After you reload VS Code
+
+When you reload the window (**Developer: Reload Window**) or restart VS Code, the open Test Wright tabs come back. Each one loads the saved session of the project:
+
+- Your folders, environment, toggles, filters, and layout
+- Your plan, with its switches and its iterations
+- Whether the console was open
+
+Test Wright then looks for your bots again and reads the environments, the saved plans, the reports, and the schedules. The console says `Previous session restored.`
+
+Not everything comes back. The console text, the last results in the tree, and the statuses of the plan rows start empty. The results are still in your `reports` folder (Module 8).
+
+All tabs share one saved session. A tab you open later starts from the session the last tab saved.
+
 ---
 
 ## 🧪 Try it
@@ -106,6 +129,7 @@ Hide both sidebars, open the console, then bring everything back.
 - [ ] You can name the five areas and what each one is for
 - [ ] You can show and hide the sidebars and the console
 - [ ] You know how to open a second Test Wright tab (and you closed it again)
+- [ ] You know that your tabs and plan come back after a reload
 
 ---
 

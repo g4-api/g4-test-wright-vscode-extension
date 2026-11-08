@@ -131,3 +131,5 @@ Find your symptom below. Each entry says what you see, why it happens, and what 
 - **Symptom:** The time passed and the run is not in the **Test Reports Repository**.
 - **Cause:** VS Code was closed, or another project was open, when the run was due. Runs whose time passed while VS Code was closed are dropped.
 - **Fix:** Keep VS Code open with this project until the run is due, and schedule the run again. See [Module 10](10-schedule-a-run.md).
+
+Looking for a message that is not listed here? See the [Test Wright troubleshooting](../troubleshooting.md) page.

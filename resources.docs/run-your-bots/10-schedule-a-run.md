@@ -58,6 +58,27 @@ When the time comes, the run starts by itself. Its results appear in the **Test 
 
 > **📝 Note:** Scheduled runs live in VS Code, not in the Test Wright tab: you can close the tab and they still run. They do need VS Code to be open with this project. When you open the project again, scheduled runs that are still in the future come back; runs whose time passed while VS Code was closed are dropped, and the console says so. You can keep up to **five** scheduled runs.
 
+### Where scheduled runs are kept
+
+Scheduled runs are kept in VS Code's **workspace state**, not in a file of your project. This has three results:
+
+- They belong to **this workspace** on **this computer**. A teammate who opens the same project does not see them, and they are not in git.
+- They survive closing the Test Wright tab, and reloading or restarting VS Code.
+- Each one keeps a snapshot of the plan, so later changes to the plan or to a saved plan file do not touch it. The bot files themselves are read when the run starts.
+
+A scheduled run happens **once**. There is no repeat. To run the plan every night, schedule the next one after each run.
+
+### Daylight saving time
+
+You type the time on your computer's clock. Test Wright turns it into one exact moment (a UTC time) when you click **Schedule Run**, and the run starts at that moment. Two days of the year need care:
+
+- **When the clocks go back,** one hour happens twice. Test Wright takes the first one. If the first one has already passed, it takes the second one, so you can still schedule inside the repeated hour. Look at the time in the scheduled run's row to see what you got.
+- **When the clocks go forward,** one hour does not exist. Test Wright adds no rule for it. The time you type is handled by the date rules of JavaScript, so check the time the row shows, and pick another time if it is not the one you wanted.
+
+A run you scheduled before the change still starts at the moment it was set for, even though the clock times around it have moved.
+
+TODO(verify): the clocks-forward case was read from the code (`parseDateTime` in `test-wright-utils.js`), not tried on a machine that crosses the change.
+
 ---
 
 ## Step 4: When two runs are due together
@@ -84,6 +105,7 @@ Schedule your plan for two or three minutes from now, with the label **My nightl
 - [ ] You scheduled a run and gave it a label
 - [ ] The run started by itself, and its results are in the Test Reports Repository
 - [ ] You know what happens to scheduled runs when VS Code is closed
+- [ ] You know that scheduled runs are kept per workspace, run once, and follow your computer's clock
 - [ ] You know the difference between **Parallel Runs** and **Parallel Tests**
 
 ---

@@ -109,4 +109,8 @@ Build this plan: **practice-slow-a**, **practice-slow-b**, then **practice-pass*
 
 ---
 
+> **💡 Want to run the plan with many sets of values?** Bots that read `{{$ columns.Name }}` can run once for every row of a table. See the [Data-Driven Runs](../data-driven-runs/README.md) path after this one.
+
+---
+
 **Next up** 👉 [Module 5: Keep your plans](05-keep-your-plans.md)
