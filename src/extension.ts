@@ -11,6 +11,7 @@ import { ShowComponentGalleryCommand } from './commands/show-component-gallery';
 import { OpenNewTestWrightCommand, ShowTestWrightCommand } from './commands/show-test-wright';
 import { TEST_WRIGHT_VIEW_TYPE, TestWrightPanelProvider } from './providers/test-wright-panel-provider';
 import { Utilities } from './extensions/utilities';
+import { BrandingService } from './services/branding-service';
 
 /**
  * Entry point of G4 Studio Test Wright.
@@ -22,6 +23,10 @@ import { Utilities } from './extensions/utilities';
  * @param context - The extension context that owns every disposable.
  */
 export function activate(context: vscode.ExtensionContext): void {
+    // Read the branding the Hub published last time before any label is created, so the output channel and the
+    // panels show it from the first moment.
+    BrandingService.initialize(context.globalState);
+
     const logger = Global.logger;
 
     // Shared services, disposed with the extension.
@@ -55,7 +60,11 @@ export function activate(context: vscode.ExtensionContext): void {
     registerManifestWatcher(context, panelProvider);
     newProjectFolders();
 
-    logger.information(`G4 Test Wright activated. Engine: ${Utilities.getEngineEndpoint()}, project: ${Utilities.getProjectFolder() || '(no workspace)'}.`);
+    logger.information(`${BrandingService.getText('{testWright}')} activated. Engine: ${Utilities.getEngineEndpoint()}, project: ${Utilities.getProjectFolder() || '(no workspace)'}.`);
+
+    // Refresh the branding from the Hub at the engine address in the background; pages opened afterwards use it,
+    // and the output channel name follows on the next start.
+    void BrandingService.refreshAsync(context.globalState, Utilities.getEngineEndpoint());
 }
 
 /**

@@ -257,8 +257,8 @@ async function updateEngineStatus() {
         chip.classList.toggle('offline', !result.isAlive);
         elements['engine-text'].textContent = result.engine;
         chip.title = result.isAlive
-            ? `G4 engine at ${result.engine} is online. Click to check again.`
-            : `G4 engine at ${result.engine} does not answer. Start the engine (or fix g4Server in manifest.json), then click to check again.`;
+            ? `${G4Branding.getText('{product}')} engine at ${result.engine} is online. Click to check again.`
+            : `${G4Branding.getText('{product}')} engine at ${result.engine} does not answer. Start the engine (or fix g4Server in manifest.json), then click to check again.`;
     } catch {
         chip.classList.remove('online');
         chip.classList.add('offline');

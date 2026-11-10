@@ -11,11 +11,15 @@
  * - {{$ page.modules }}          the module script tags.
  * - {{$ page.data }}             HTML-escaped JSON the page reads from #g4-data (optional).
  *
+ * Every page also gets the white-label branding in its head: a g4-branding meta tag and the
+ * resources.components/branding/branding.js script, so page scripts can call G4Branding.getText.
+ *
  * RESOURCES:
  * Content Security Policy in webviews: https://code.visualstudio.com/api/extension-guides/webview#content-security-policy
  */
 import * as path from 'node:path';
 import * as vscode from 'vscode';
+import { BrandingService } from '../services/branding-service';
 import { Utilities } from './utilities';
 import { WebviewComponents } from './webview-components';
 
@@ -103,8 +107,12 @@ export class WebviewPages {
             .join('\n');
         const dataText = data === undefined ? '' : WebviewPages.getEscapedHtml(JSON.stringify(data));
 
+        // Brand the page before its own scripts run: the settings and the branding script close the head.
+        const brandingHead = BrandingService.getPageHead(toUri(path.join(componentsRoot.fsPath, 'branding', 'branding.js')));
+
         // Replacer functions keep any `$` in the inserted text from being read as a pattern.
         return html
+            .replace('</head>', () => `${brandingHead}\n</head>`)
             .replace(/\{\{\$ csp\.source \}\}/g, () => webview.cspSource)
             .replace('{{$ component.style.uri }}', () => toUri(path.join(pageFolder, `${pageName}.css`)))
             .replace('{{$ component.script.uri }}', () => toUri(path.join(pageFolder, `${pageName}.js`)))

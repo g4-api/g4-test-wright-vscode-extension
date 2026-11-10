@@ -7,6 +7,7 @@ out/**
 tsconfig.json
 eslint.config.mjs
 webpack.config.js
+scripts/**
 .gitignore
 **/*.vsix
 **/.eslintcache

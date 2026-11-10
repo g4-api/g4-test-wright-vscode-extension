@@ -106,7 +106,7 @@ async function restoreSession() {
     setStatus('idle');
     showApp();
 
-    writeLog(saved ? 'Previous session restored.' : 'G4 Test Wright ready. Bots, plans, and reports folders follow the G4 project layout.', 'muted');
+    writeLog(saved ? 'Previous session restored.' : G4Branding.getText('{testWright} ready. Bots, plans, and reports folders follow the {product} project layout.'), 'muted');
 
     if (!defaults.hasManifest) {
         writeLog('No manifest.json found in this workspace; the engine defaults to http://localhost:9944.', 'warn');

@@ -168,7 +168,9 @@
             row.className = 'g4-run-summary__case';
             row.dataset.testId = `${prefix}-case-${runKey}`;
             row.classList.toggle('g4-run-summary__case--openable', hasReport);
-            row.title = hasReport ? 'Open the G4 report of this bot' : 'No G4 report: the bot got no engine response';
+            row.title = hasReport
+                ? G4Branding.getText('Open the {product} report of this bot')
+                : G4Branding.getText('No {product} report: the bot got no engine response');
             top.className = 'g4-run-summary__case-top';
             name.className = 'g4-run-summary__case-name';
             name.textContent = `${test.name}${positionText}${iterationText}`;

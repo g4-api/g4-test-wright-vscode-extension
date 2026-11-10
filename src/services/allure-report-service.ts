@@ -20,6 +20,7 @@ import * as http from 'node:http';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { ALLURE_CATEGORIES, ALLURE_FOLDER_PREFIX, ALLURE_MERGED_FOLDER, AllureConverter } from './allure-converter';
+import { BrandingService } from './branding-service';
 import { WebviewPages } from '../extensions/webview-pages';
 import { Logger } from '../logging/logger';
 
@@ -285,8 +286,8 @@ export class AllureReportService implements vscode.Disposable {
         // One run writes allure-<run>/report; a merge writes allure-merged under the selected folder.
         const outputFolder = AllureReportService.getReportFolder(folderPath, resultsFolders);
         const reportName = resultsFolders.length === 1
-            ? `G4 Run ${AllureReportService.getRunName(resultsFolders[0])}`
-            : `G4 Runs (${resultsFolders.length})`;
+            ? `${BrandingService.getText('{product}')} Run ${AllureReportService.getRunName(resultsFolders[0])}`
+            : `${BrandingService.getText('{product}')} Runs (${resultsFolders.length})`;
 
         // Two generations into one folder would replace each other's files mid-write.
         if (this._generatingFolders.has(outputFolder)) {

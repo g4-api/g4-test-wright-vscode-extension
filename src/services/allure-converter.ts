@@ -28,6 +28,7 @@ import * as crypto from 'node:crypto';
 import * as fs from 'node:fs/promises';
 import * as os from 'node:os';
 import * as path from 'node:path';
+import { BrandingService } from './branding-service';
 import { JsonReader } from '../extensions/json-reader';
 import { ResultEvaluator } from './result-evaluator';
 import { RunRecord, TestRecord, TestStatus } from '../models/test-wright-models';
@@ -217,7 +218,10 @@ export class AllureConverter {
 
         if (response !== null) {
             result.steps = await this.newSessionSteps(response);
-            result.attachments.push(await this.writeAttachment('g4-response', JSON.stringify(response, null, 4), 'application/json', 'json'));
+            // The attachment is named after the branded product, for example g4-response.
+            const attachmentName = `${BrandingService.getText('{product}').toLowerCase()}-response`;
+
+            result.attachments.push(await this.writeAttachment(attachmentName, JSON.stringify(response, null, 4), 'application/json', 'json'));
         }
 
         await fs.writeFile(path.join(this._resultsFolder, `${uuid}-result.json`), JSON.stringify(result, null, 2), 'utf8');
@@ -256,10 +260,10 @@ export class AllureConverter {
         await fs.writeFile(path.join(this._resultsFolder, 'environment.properties'), properties.join('\n'), 'utf8');
 
         const executor = {
-            name: 'G4 Studio Test Wright',
+            name: BrandingService.getText('{studio} Test Wright'),
             type: 'g4',
             buildName: record.label || record.name,
-            reportName: `G4 Run ${record.name}`
+            reportName: `${BrandingService.getText('{product}')} Run ${record.name}`
         };
 
         await fs.writeFile(path.join(this._resultsFolder, 'executor.json'), JSON.stringify(executor, null, 2), 'utf8');
@@ -487,7 +491,7 @@ export class AllureConverter {
             { name: 'testMethod', value: test.name },
             { name: 'host', value: AllureConverter.getMachineName(response) },
             { name: 'thread', value: record.parallel ? 'parallel' : 'sequential' },
-            { name: 'framework', value: 'G4' },
+            { name: 'framework', value: BrandingService.getText('{product}') },
             { name: 'language', value: 'g4' },
             { name: 'g4.environment', value: record.environment || '(none)' },
             { name: 'g4.engine', value: record.engine }
