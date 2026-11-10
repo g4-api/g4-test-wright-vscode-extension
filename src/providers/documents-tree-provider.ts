@@ -2,13 +2,17 @@
  * The Documentation view of the Test Wright activity bar: the learning paths shipped in the
  * extension's resources.docs folder, laid out as the G4 Engine Client lays out a project's docs.
  *
- * Like a file explorer, folders come first and files after them, A-Z within each group: one folder
- * per learning path ("run-your-bots" shows as "Run Your Bots"), then the root index
- * (test-wright-learning.md, shown as "Test Wright Learning Paths"). Only Markdown files are
- * listed, so folders without Markdown (images, practice) are left out. Selecting a document opens
- * the Markdown preview from its real location, so relative links and images work.
+ * Like a file explorer, folders come first and files after them, each group in file-name order,
+ * so numbered modules keep their order. Every node is named the way the learning paths name it
+ * for readers: a folder by its README's title ("data-driven-runs" shows as "Data-Driven Runs"),
+ * a file by the link text its folder's index gives it ("01-get-set-up.md" shows as "Get set up"),
+ * then by its own title (see DocumentLabelService). Only Markdown files are listed, so folders
+ * without Markdown (images, practice) are left out. Selecting a document opens the Markdown
+ * preview from its real location, so relative links and images work.
  */
 import * as vscode from 'vscode';
+
+import { DocumentLabelService } from '../services/document-label-service';
 
 // The view id declared in package.json.
 export const DOCUMENTS_VIEW_ID = 'g4TestWrightDocuments';
@@ -19,9 +23,11 @@ const REFRESH_COMMAND = 'TestWright.RefreshDocuments';
 // The extension folder that holds the learning paths.
 const DOCUMENTS_FOLDER = 'resources.docs';
 
-// The root index file and the label it shows (the Engine Client names its copy "G4 Learning Paths").
-const INDEX_FILE_NAME = 'test-wright-learning.md';
-const INDEX_LABEL = 'Test Wright Learning Paths';
+// The index that names the documents of the docs root.
+const ROOT_INDEX_FILE_NAME = 'test-wright-learning.md';
+
+// The index that names the documents of a learning-path folder, and gives the folder its title.
+const FOLDER_INDEX_FILE_NAME = 'readme.md';
 
 // File extensions listed as documents.
 const MARKDOWN_EXTENSIONS = new Set(['.md', '.markdown', '.mdx']);
@@ -100,12 +106,13 @@ export class DocumentsTreeProvider implements vscode.TreeDataProvider<DocumentNo
      * Reads the Markdown documents under a folder, recursively.
      *
      * @param folderUri - The folder to read.
-     * @param isRoot - Whether this is the docs root (where the index file is found).
-     * @returns Folders first, then files; A-Z within each group.
+     * @param isRoot - Whether this is the docs root, whose index is test-wright-learning.md instead of a README.
+     * @returns Folders first, then files; each group in file-name order.
      *
      * @remarks
      * Folders without Markdown are left out, and an unreadable folder or file yields no node
-     * instead of failing the whole tree.
+     * instead of failing the whole tree. The folder's index is read once, so every file of the
+     * folder is named from the same links.
      */
     private static async findDocuments(folderUri: vscode.Uri, isRoot: boolean): Promise<DocumentNode[]> {
         // An unreadable folder contributes nothing.
@@ -117,6 +124,14 @@ export class DocumentsTreeProvider implements vscode.TreeDataProvider<DocumentNo
             return [];
         }
 
+        // Read the names the folder's index gives its documents; a folder without an index names none.
+        const indexFileName = isRoot ? ROOT_INDEX_FILE_NAME : FOLDER_INDEX_FILE_NAME;
+        const indexEntry = entries.find(([name, type]) => type === vscode.FileType.File && name.toLowerCase() === indexFileName);
+        const indexText = indexEntry === undefined
+            ? ''
+            : await DocumentsTreeProvider.readText(vscode.Uri.joinPath(folderUri, indexEntry[0]));
+        const linkLabels = DocumentLabelService.getLinkLabels(indexText);
+
         // Folders recurse; files are kept when they are Markdown. Other entries resolve to undefined.
         const nodes = await Promise.all(entries.map(async ([name, type]) => {
             const childUri = vscode.Uri.joinPath(folderUri, name);
@@ -124,23 +139,24 @@ export class DocumentsTreeProvider implements vscode.TreeDataProvider<DocumentNo
             if (type === vscode.FileType.Directory) {
                 const children = await DocumentsTreeProvider.findDocuments(childUri, false);
 
-                return children.length === 0 ? undefined : DocumentsTreeProvider.newFolderNode(name, children);
+                return children.length === 0
+                    ? undefined
+                    : DocumentsTreeProvider.newFolderNode({ children, folderName: name, folderUri: childUri, linkLabels });
             }
 
             const isMarkdown = type === vscode.FileType.File && MARKDOWN_EXTENSIONS.has(DocumentsTreeProvider.getExtension(name));
 
-            return isMarkdown ? DocumentsTreeProvider.newFileNode(name, childUri, isRoot) : undefined;
+            return isMarkdown ? DocumentsTreeProvider.newFileNode({ fileName: name, fileUri: childUri, linkLabels }) : undefined;
         }));
 
-        // Folders first, then files, as a file explorer lists them; A-Z within each group, ignoring
-        // case and comparing numbers by value so "2" comes before "10".
+        // Folders first, then files, as a file explorer lists them; each group in file-name order,
+        // ignoring case and comparing numbers by value, so the numbered modules keep their order.
         const getRank = (node: DocumentNode): number => (node.children === undefined ? 1 : 0);
-        const getLabel = (node: DocumentNode): string => (typeof node.label === 'string' ? node.label : '');
 
         return nodes
             .filter((node): node is DocumentNode => node !== undefined)
             .sort((left, right) => getRank(left) - getRank(right)
-                || getLabel(left).localeCompare(getLabel(right), undefined, { numeric: true, sensitivity: 'base' }));
+                || left.fileName.localeCompare(right.fileName, undefined, { numeric: true, sensitivity: 'base' }));
     }
 
     /**
@@ -158,19 +174,21 @@ export class DocumentsTreeProvider implements vscode.TreeDataProvider<DocumentNo
     /**
      * Creates a file node that opens the Markdown preview.
      *
-     * @param name - The file name.
-     * @param fileUri - The file on disk.
-     * @param isRoot - Whether the file sits at the docs root.
-     * @returns The node.
+     * @param options - The file name, the file on disk, and the names the folder's index gives its documents.
+     * @returns The node, named by its index link, its title, or its file name.
      */
-    private static newFileNode(name: string, fileUri: vscode.Uri, isRoot: boolean): DocumentNode {
-        // The root index reads as the learning paths' title; other files keep their names.
-        const isIndex = isRoot && name.toLowerCase() === INDEX_FILE_NAME;
-        const extension = DocumentsTreeProvider.getExtension(name);
-        const label = isIndex ? INDEX_LABEL : name.substring(0, name.length - extension.length);
-        const node: DocumentNode = new vscode.TreeItem(label, vscode.TreeItemCollapsibleState.None);
+    private static async newFileNode(options: FileNodeOptions): Promise<DocumentNode> {
+        const { fileName, fileUri, linkLabels } = options;
+
+        // Name the file the way its learning path names it; the file text is read only for its title.
+        const fileText = linkLabels.has(fileName.toLowerCase())
+            ? ''
+            : await DocumentsTreeProvider.readText(fileUri);
+        const label = DocumentLabelService.getFileLabel({ fileName, fileText, linkLabels });
+        const node = new vscode.TreeItem(label, vscode.TreeItemCollapsibleState.None) as DocumentNode;
 
         // The real file URI lets the preview resolve the document's relative links and images.
+        node.fileName = fileName;
         node.iconPath = new vscode.ThemeIcon('markdown');
         node.resourceUri = fileUri;
         node.tooltip = fileUri.fsPath;
@@ -182,22 +200,42 @@ export class DocumentsTreeProvider implements vscode.TreeDataProvider<DocumentNo
     /**
      * Creates a folder node with its children.
      *
-     * @param name - The folder name, in lower kebab case.
-     * @param children - The folder's documents.
-     * @returns The node, labeled in Title Case ("run-your-bots" becomes "Run Your Bots").
+     * @param options - The folder's documents, its name and location, and the names the parent's index gives.
+     * @returns The node, named by its index link or its README's title ("data-driven-runs" becomes
+     *     "Data-Driven Runs").
      */
-    private static newFolderNode(name: string, children: DocumentNode[]): DocumentNode {
-        const label = name
-            .split('-')
-            .filter((word) => word !== '')
-            .map((word) => word.charAt(0).toUpperCase() + word.substring(1))
-            .join(' ');
-        const node: DocumentNode = new vscode.TreeItem(label, vscode.TreeItemCollapsibleState.Collapsed);
+    private static async newFolderNode(options: FolderNodeOptions): Promise<DocumentNode> {
+        const { children, folderName, folderUri, linkLabels } = options;
+
+        // Name the folder the way the parent's index or its README names it; the README is read only when the
+        // index does not name the folder.
+        const isLinked = linkLabels.has(`${folderName.toLowerCase()}/`);
+        const readmeText = isLinked
+            ? ''
+            : await DocumentsTreeProvider.readText(vscode.Uri.joinPath(folderUri, 'README.md'));
+        const label = DocumentLabelService.getFolderLabel({ folderName, linkLabels, readmeText });
+        const node = new vscode.TreeItem(label, vscode.TreeItemCollapsibleState.Collapsed) as DocumentNode;
 
         node.children = children;
+        node.fileName = folderName;
         node.iconPath = new vscode.ThemeIcon('folder');
 
         return node;
+    }
+
+    /**
+     * Reads a text file.
+     *
+     * @param fileUri - The file.
+     * @returns The text, or an empty string when the file cannot be read, so a missing index or
+     *     title only falls back to the next name.
+     */
+    private static async readText(fileUri: vscode.Uri): Promise<string> {
+        try {
+            return new TextDecoder('utf-8').decode(await vscode.workspace.fs.readFile(fileUri));
+        } catch {
+            return '';
+        }
     }
 }
 
@@ -210,4 +248,38 @@ export class DocumentsTreeProvider implements vscode.TreeDataProvider<DocumentNo
 interface DocumentNode extends vscode.TreeItem {
     /** The folder's documents; undefined for a file. */
     children?: DocumentNode[];
+
+    /** The folder or file name on disk, which orders the tree while the label is the reader's name. */
+    fileName: string;
+}
+
+/**
+ * Inputs of {@link DocumentsTreeProvider.newFileNode}.
+ */
+interface FileNodeOptions {
+    /** The file name, with its extension. */
+    fileName: string;
+
+    /** The file on disk. */
+    fileUri: vscode.Uri;
+
+    /** The names the folder's index gives its documents, keyed by the lower-case file name. */
+    linkLabels: ReadonlyMap<string, string>;
+}
+
+/**
+ * Inputs of {@link DocumentsTreeProvider.newFolderNode}.
+ */
+interface FolderNodeOptions {
+    /** The folder's documents, already read. */
+    children: DocumentNode[];
+
+    /** The folder name on disk. */
+    folderName: string;
+
+    /** The folder on disk, where its README is read. */
+    folderUri: vscode.Uri;
+
+    /** The names the parent's index gives its documents and folders, keyed as the label service keys them. */
+    linkLabels: ReadonlyMap<string, string>;
 }
