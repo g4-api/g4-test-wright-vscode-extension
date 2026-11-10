@@ -18,7 +18,10 @@
         <!-- ===== Header ===== -->
         <header class="header" data-test-id="app-header">
             <div class="brand">
-                <span class="brand-mark" data-branding-text="{mark}">G4</span>
+                <span class="brand-mark"
+                      data-test-id="test-wright-header-brand-icon"
+                      aria-hidden="true"
+                      style="--test-wright-brand-icon: url('{{$ brand.icon.uri }}')"></span>
                 <div class="brand-text">
                     <h1>Test Wright</h1>
                     <span class="brand-sub" data-branding-text="{product} bots workbench">G4 bots workbench</span>

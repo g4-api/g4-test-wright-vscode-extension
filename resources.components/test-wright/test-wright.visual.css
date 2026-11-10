@@ -32,9 +32,7 @@ input:focus-visible {
 }
 
 .brand-mark {
-    background-color: var(--test-wright-button-background);
-    border-radius: var(--test-wright-radius);
-    color: var(--test-wright-button-foreground);
+    background-color: var(--test-wright-brand-icon-color);
 }
 
 .brand-sub,

@@ -8,6 +8,8 @@
     --test-wright-badge-background: var(--vscode-badge-background);
     --test-wright-badge-foreground: var(--vscode-badge-foreground);
     --test-wright-border: var(--vscode-panel-border, rgba(127, 127, 127, .3));
+    --test-wright-brand-icon: none;
+    --test-wright-brand-icon-color: var(--vscode-button-background);
     --test-wright-broken: var(--vscode-testing-iconErrored, #f14c4c);
     --test-wright-button-background: var(--vscode-button-background);
     --test-wright-button-foreground: var(--vscode-button-foreground);

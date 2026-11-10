@@ -3,6 +3,7 @@
     "displayName": "G4 Studio Test Wright",
     "description": "A G4 bots test workbench for VS Code: discover the bots of a G4 project, build run plans with drag and drop, run them against the G4 engine, and review G4 and Allure reports.",
     "version": "0.0.1",
+    "icon": "resources.assets/icon.png",
     "engines": {
         "vscode": "^1.105.0"
     },
@@ -37,6 +38,17 @@
     "license": "Apache-2.0",
     "main": "./dist/extension.js",
     "contributes": {
+        "configuration": {
+            "title": "G4 Test Wright",
+            "properties": {
+                "g4TestWright.sidePanelIcon": {
+                    "type": "string",
+                    "default": "",
+                    "scope": "machine",
+                    "markdownDescription": "Absolute path to an SVG file to show as the Test Wright side-panel (activity bar) icon, its panel tab icon, and its page header icon, for example `C:/branding/test-wright.svg` or `~/branding/test-wright.svg`. Draw it on a 24 by 24 grid in one color (`currentColor`); at most 256 KB. Takes precedence over the icon the Hub branding publishes. VS Code reads the activity bar icon at startup, so a change shows there from the next start. Leave empty for the Hub icon or the built-in icon."
+                }
+            }
+        },
         "commands": [
             {
                 "command": "TestWright.Show",
