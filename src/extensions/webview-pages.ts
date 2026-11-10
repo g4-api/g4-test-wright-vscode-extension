@@ -6,6 +6,7 @@
  * in the listed order after the components. Placeholders:
  *
  * - {{$ csp.source }}           webview.cspSource, for the Content-Security-Policy.
+ * - {{$ brand.icon.uri }}        the installed Test Wright icon, which follows the chosen side-panel icon.
  * - {{$ component.style.uri }}   the page stylesheet (<page>.css).
  * - {{$ component.script.uri }}  the page script (<page>.js), loaded last.
  * - {{$ page.modules }}          the module script tags.
@@ -114,6 +115,7 @@ export class WebviewPages {
         return html
             .replace('</head>', () => `${brandingHead}\n</head>`)
             .replace(/\{\{\$ csp\.source \}\}/g, () => webview.cspSource)
+            .replace('{{$ brand.icon.uri }}', () => toUri(path.join(context.extensionPath, 'resources.assets', 'g4-test-wright-mark.svg')))
             .replace('{{$ component.style.uri }}', () => toUri(path.join(pageFolder, `${pageName}.css`)))
             .replace('{{$ component.script.uri }}', () => toUri(path.join(pageFolder, `${pageName}.js`)))
             .replace('{{$ page.modules }}', () => modules)

@@ -45,13 +45,14 @@ body {
 }
 
 .brand-mark {
-    display: grid;
-    place-items: center;
-    width: 34px;
-    height: 34px;
-    font-size: 14px;
-    font-weight: 800;
-    letter-spacing: .04em;
+    display: block;
+    flex-shrink: 0;
+    width: 30px;
+    height: 30px;
+    mask-image: var(--test-wright-brand-icon);
+    mask-position: center;
+    mask-repeat: no-repeat;
+    mask-size: contain;
 }
 
 .brand-text h1 {
