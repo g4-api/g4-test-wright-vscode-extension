@@ -11,6 +11,7 @@ import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { AllureConverter } from '../services/allure-converter';
 import { AllureReportService } from '../services/allure-report-service';
+import { BrandingService } from '../services/branding-service';
 import { Logger } from '../logging/logger';
 import { RepositoryService } from '../services/repository-service';
 import { WebviewPages } from '../extensions/webview-pages';
@@ -65,7 +66,7 @@ export class RunReportProvider implements vscode.Disposable {
         const test = record?.tests.find((candidate) => (candidate.runKey ?? candidate.id) === testId);
 
         if (test === undefined || !test.reportFile) {
-            vscode.window.showWarningMessage(`No G4 report was saved for '${testId}' (it did not get an engine response).`);
+            vscode.window.showWarningMessage(`No ${BrandingService.getText('{product}')} report was saved for '${testId}' (it did not get an engine response).`);
 
             return;
         }

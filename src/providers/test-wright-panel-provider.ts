@@ -15,6 +15,7 @@ import { existsSync } from 'node:fs';
 import { AllureConverter } from '../services/allure-converter';
 import { AllureReportService } from '../services/allure-report-service';
 import { BotsDiscoveryService } from '../services/bots-discovery-service';
+import { BrandingService } from '../services/branding-service';
 import { DataSetService } from '../services/data-set-service';
 import { G4Client } from '../clients/g4-client';
 import { Logger } from '../logging/logger';
@@ -37,8 +38,9 @@ const G4_WORKFLOW_EDITOR_VIEW_TYPE = 'g4.workflowEditor';
 // The page's view type (also used to restore the panel after a reload).
 export const TEST_WRIGHT_VIEW_TYPE = 'g4TestWright.panel';
 
-// Title of the first panel; later panels add their number, as in 'G4 Test Wright (2)'.
-const PANEL_TITLE = 'G4 Test Wright';
+// Title template of the first panel, resolved from the branding; later panels add their number, as in
+// 'G4 Test Wright (2)'.
+const PANEL_TITLE = '{testWright}';
 
 // Reads the number at the end of a panel title ('G4 Test Wright (3)' -> 3). Linear: anchored, one digit run.
 const PANEL_NUMBER_PATTERN = /\((\d+)\)$/;
@@ -114,7 +116,8 @@ export class TestWrightPanelProvider implements vscode.Disposable {
             panelNumber++;
         }
 
-        const title = panelNumber === 1 ? PANEL_TITLE : `${PANEL_TITLE} (${panelNumber})`;
+        const panelTitle = BrandingService.getText(PANEL_TITLE);
+        const title = panelNumber === 1 ? panelTitle : `${panelTitle} (${panelNumber})`;
         const panel = vscode.window.createWebviewPanel(
             TEST_WRIGHT_VIEW_TYPE,
             title,
@@ -403,7 +406,7 @@ export class TestWrightPanelProvider implements vscode.Disposable {
             return { editor: 'workflow' };
         }
 
-        this._logger.information(`G4 Engine Client not installed: '${filePath}' opens as text.`);
+        this._logger.information(`${BrandingService.getText('{engineClient}')} not installed: '${filePath}' opens as text.`);
         await vscode.window.showTextDocument(uri, { preview: true });
 
         return { editor: 'text' };

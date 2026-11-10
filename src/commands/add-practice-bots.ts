@@ -1,6 +1,7 @@
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
+import { BrandingService } from '../services/branding-service';
 import { CommandBase } from './command-base';
 import { TestWrightPanelProvider } from '../providers/test-wright-panel-provider';
 import { Utilities } from '../extensions/utilities';
@@ -40,7 +41,7 @@ export class AddPracticeBotsCommand extends CommandBase {
         const projectFolder = Utilities.getProjectFolder();
 
         if (projectFolder === '' || Utilities.getManifest() === null) {
-            vscode.window.showWarningMessage('Open a G4 project (the folder that holds manifest.json) to add the practice bots.');
+            vscode.window.showWarningMessage(BrandingService.getText('Open a {product} project (the folder that holds manifest.json) to add the practice bots.'));
 
             return;
         }

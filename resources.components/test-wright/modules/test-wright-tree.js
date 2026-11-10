@@ -512,7 +512,7 @@ async function openTreeBot(test) {
         const result = await g4Host.request('bots:open', { path: test.path });
 
         if (result?.editor === 'text') {
-            writeLog(`${test.id} opened as text: install the G4 Engine Client extension to open bots in the Workflow Editor.`, 'muted');
+            writeLog(`${test.id} opened as text: install the ${G4Branding.getText('{engineClient}')} extension to open bots in the Workflow Editor.`, 'muted');
         }
     } catch (error) {
         writeLog(`${test.id} could not be opened: ${error.message}`, 'fail');

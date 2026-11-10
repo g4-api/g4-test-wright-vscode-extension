@@ -296,7 +296,7 @@ function showReports() {
     }
 
     if (state.reportsList.length === 0) {
-        list.innerHTML = writeEmptyState('search', 'No runs found', 'Run a plan; every run is saved here with its G4 and Allure reports.');
+        list.innerHTML = writeEmptyState('search', 'No runs found', G4Branding.getText('Run a plan; every run is saved here with its {product} and Allure reports.'));
 
         return;
     }

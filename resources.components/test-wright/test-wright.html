@@ -8,7 +8,7 @@
           content="default-src 'none'; img-src {{$ csp.source }} data:; font-src {{$ csp.source }}; style-src {{$ csp.source }} 'unsafe-inline'; script-src {{$ csp.source }};">
     <meta name="g4-components" content="g4-accordion g4-console-drawer g4-data-sheet g4-date-picker g4-empty-state g4-environment-picker g4-modal g4-run-summary g4-tag-filter g4-toggle">
     <meta name="g4-page-modules" content="test-wright-client test-wright-utils test-wright-console test-wright-dialogs test-wright-environments test-wright-tags test-wright-tree test-wright-plan test-wright-plan-files test-wright-data test-wright-reports test-wright-allure test-wright-accordion test-wright-schedule test-wright-runner test-wright-layout test-wright-persistence">
-    <title>G4 Test Wright</title>
+    <title data-branding-text="{testWright}">G4 Test Wright</title>
     {{$ components.styles }}
     <link rel="stylesheet" href="{{$ component.style.uri }}">
 </head>
@@ -18,10 +18,10 @@
         <!-- ===== Header ===== -->
         <header class="header" data-test-id="app-header">
             <div class="brand">
-                <span class="brand-mark">G4</span>
+                <span class="brand-mark" data-branding-text="{mark}">G4</span>
                 <div class="brand-text">
                     <h1>Test Wright</h1>
-                    <span class="brand-sub">G4 bots workbench</span>
+                    <span class="brand-sub" data-branding-text="{product} bots workbench">G4 bots workbench</span>
                 </div>
             </div>
 
@@ -45,6 +45,7 @@
                         id="engine-chip"
                         class="engine-chip"
                         title="G4 engine address; click to check it again"
+                        data-branding-title="{product} engine address; click to check it again"
                         data-test-id="engine-status-button">
                     <span id="engine-dot" class="engine-dot"></span>
                     <span id="engine-text" data-test-id="engine-status-text">Engine</span>
