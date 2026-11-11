@@ -16,10 +16,11 @@
  * - Status: failed assertion = failed; exceptions without failed assertions = broken (the Test
  *   Wright "warning"); bots that never ran = broken; canceled bots = skipped.
  * - Layout: a run's Allure files live beside the run folder, never inside it:
- *     reports/<run>/                   run.json and the .g4rpt files
- *     reports/allure-<run>/results/    Allure results
- *     reports/allure-<run>/report/     generated Allure report
+ *     reports/<run>/                   run.json and the .g4rpt files (<run> = yyyyMMdd-HHmmss)
+ *     reports/<run>-allure/results/    Allure results
+ *     reports/<run>-allure/report/     generated Allure report
  *     reports/allure-merged/           report merged from several runs
+ *   Runs saved before this naming have their Allure files in reports/allure-<run>/; those are still read.
  *
  * RESOURCES:
  * Allure result format: https://allurereport.org/docs/how-it-works-test-result-file/
@@ -41,8 +42,11 @@ export const ALLURE_CATEGORIES = [
     { name: 'Canceled', matchedStatuses: ['skipped'] }
 ];
 
-// Prefix of every Allure folder under the reports folder.
-export const ALLURE_FOLDER_PREFIX = 'allure-';
+// Suffix of a run's Allure folder: <run>-allure beside the run folder.
+const ALLURE_FOLDER_SUFFIX = '-allure';
+
+// Prefix of a run's Allure folder from before the <run>-allure naming: allure-<run> (read only).
+const LEGACY_ALLURE_FOLDER_PREFIX = 'allure-';
 
 // Folder of a report merged from several runs.
 export const ALLURE_MERGED_FOLDER = 'allure-merged';
@@ -101,7 +105,7 @@ export class AllureConverter {
     }
 
     /**
-     * Converts a run folder into `allure-<run>/results` beside it.
+     * Converts a run folder into `<run>-allure/results` beside it.
      *
      * @param runFolder - The run folder that holds run.json.
      * @returns The results folder and the number of test results written.
@@ -128,17 +132,51 @@ export class AllureConverter {
     }
 
     /**
-     * Returns the Allure folder of a run: `allure-<run>` beside the run folder.
+     * Returns the Allure folder of a run: `<run>-allure` beside the run folder.
      *
      * @param runFolder - The run folder that holds run.json.
      * @returns The run's Allure folder.
      */
     public static getAllureFolder(runFolder: string): string {
-        return path.join(path.dirname(runFolder), `${ALLURE_FOLDER_PREFIX}${path.basename(runFolder)}`);
+        return path.join(path.dirname(runFolder), `${path.basename(runFolder)}${ALLURE_FOLDER_SUFFIX}`);
     }
 
     /**
-     * Returns the generated Allure report folder of a run: `allure-<run>/report`.
+     * Returns the run name an Allure folder belongs to: `<run>` for `<run>-allure`, or for a legacy `allure-<run>`.
+     *
+     * @param folderName - The folder name, without its parent path.
+     * @returns The run name, or null when the folder is not a run's Allure folder (the merged folder is not).
+     */
+    public static getAllureRunName(folderName: string): string | null {
+        // A merged report belongs to no single run.
+        if (folderName === ALLURE_MERGED_FOLDER) {
+            return null;
+        }
+
+        // The current naming comes first; the legacy prefix is read for runs saved before it.
+        if (folderName.endsWith(ALLURE_FOLDER_SUFFIX) && folderName.length > ALLURE_FOLDER_SUFFIX.length) {
+            return folderName.slice(0, -ALLURE_FOLDER_SUFFIX.length);
+        }
+
+        if (folderName.startsWith(LEGACY_ALLURE_FOLDER_PREFIX) && folderName.length > LEGACY_ALLURE_FOLDER_PREFIX.length) {
+            return folderName.slice(LEGACY_ALLURE_FOLDER_PREFIX.length);
+        }
+
+        return null;
+    }
+
+    /**
+     * Returns the Allure folder a run had before the `<run>-allure` naming: `allure-<run>` beside the run folder.
+     *
+     * @param runFolder - The run folder that holds run.json.
+     * @returns The run's legacy Allure folder (read only; new results are never written there).
+     */
+    public static getLegacyAllureFolder(runFolder: string): string {
+        return path.join(path.dirname(runFolder), `${LEGACY_ALLURE_FOLDER_PREFIX}${path.basename(runFolder)}`);
+    }
+
+    /**
+     * Returns the generated Allure report folder of a run: `<run>-allure/report`.
      *
      * @param runFolder - The run folder that holds run.json.
      * @returns The report folder.
@@ -148,7 +186,7 @@ export class AllureConverter {
     }
 
     /**
-     * Returns the Allure results folder of a run: `allure-<run>/results`.
+     * Returns the Allure results folder of a run: `<run>-allure/results`.
      *
      * @param runFolder - The run folder that holds run.json.
      * @returns The results folder.

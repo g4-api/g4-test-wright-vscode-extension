@@ -90,7 +90,7 @@ on screen (or, where noted, on disk).
 | E2 | Click the D1 run. | Run Report modal: status, tally, one row per bot with messages. |
 | E3 | Click the `vt-fail` row. | G4 automation report tab opens for that bot. |
 | E4 | In the modal, **Open in Tab**. | Run report opens in its own tab. |
-| E5 | **Reveal Folder** / **Open run.json**. | Folder shown in Explorer / `run.json` opens. Folder layout: `<run>/` holds `run.json` + `.g4rpt`; `allure-<run>/results` beside it. |
+| E5 | **Reveal Folder** / **Open run.json**. | Folder shown in Explorer / `run.json` opens. Folder layout: `<run>/` holds `run.json` + `.g4rpt`; `<run>-allure/results` beside it. |
 | E6 | Drag the D1 run onto the plan (Append off). | Plan is replaced by the run's 4 bots after confirmation. |
 | E7 | In the VS Code Explorer, right-click a `run.json` → **Open Run Report**. | Run report tab opens. |
 
@@ -140,7 +140,7 @@ Precondition: the H5 run exists, and Allure collection is on.
 | I2 | Turn off the network (airplane mode or disable the adapter). Close the report tab. Press **Open Allure** again. | The report opens with the same tests. Nothing waits for a remote site. |
 | I3 | Scroll to the footer of the report. Click **Powered by Allure**. | Nothing happens. No browser window opens and the page does not navigate. |
 | I4 | Turn **Browser** on in the **Allure Reports** section, then press **Open Allure** in the H5 Run Report. | The report opens at an `http://127.0.0.1:<port>/` address, and I3 behaves the same way. |
-| I5 | Open an `.html` page of `reports/allure-<run>/report` as text. | Right after `<head>`, the page holds a `Content-Security-Policy` meta tag with `default-src 'self'` and a script marked `data-g4-airgap`. |
+| I5 | Open an `.html` page of `reports/<run>-allure/report` as text. | Right after `<head>`, the page holds a `Content-Security-Policy` meta tag with `default-src 'self'` and a script marked `data-g4-airgap`. |
 
 ## Reporting
 

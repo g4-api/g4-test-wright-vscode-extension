@@ -41,7 +41,7 @@ timestamp:   08/11/26, 10:15:02.123
 level:       i INFORMATION
 application: G4 Test Wright
 logger:      G4.TestWright.RunService
-message:     Starting run 2026-11-08-101502123: 3 plan item(s) on http://localhost:9944.
+message:     Starting run 20261108-101502: 3 plan item(s) on http://localhost:9944.
 ```
 
 | Line | What it tells you |

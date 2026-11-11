@@ -258,7 +258,7 @@ export interface RunRecord {
     type: 'g4-test-wright-run';
     version: 1;
 
-    /** Run folder name (yyyy-MM-dd-HHmmssfff). */
+    /** Run folder name (yyyyMMdd-HHmmss, with -2, -3... when two runs start in the same second). */
     name: string;
     label: string;
     scheduled: boolean;

@@ -21,8 +21,8 @@ In **Allure Reports**, the **Allure folder** can be any of these. Test Wright tr
 | You select | What Test Wright uses |
 | --- | --- |
 | A results folder (it holds `*-result.json` files) | That folder. |
-| A run folder (it holds `run.json`) | `allure-<run>/results` beside it. |
-| A run's `allure-<run>` folder | Its `results` folder. |
+| A run folder (it holds `run.json`) | `<run>-allure/results` beside it. |
+| A run's `<run>-allure` folder | Its `results` folder. |
 | Any other folder, such as the reports folder | Every results folder found inside it. The search goes into subfolders, up to three levels deep. |
 
 ![The Allure folder box with the reports folder selected](images/03-allure-folder.png)
@@ -37,12 +37,12 @@ The report folder depends on how many results folders were found:
 
 | Found | Report folder | Report name |
 | --- | --- | --- |
-| One | `allure-<run>/report` | `G4 Run <run>` |
+| One | `<run>-allure/report` | `G4 Run <run>` |
 | Several | `allure-merged`, inside the folder you selected | `G4 Runs (N)` |
 
 ```text
 reports/
-    allure-2026-11-08-101500/
+    20261108-101500-allure/
         results/
         report/                     the report of one run
     allure-merged/                  the merged report of every run below reports/
@@ -64,14 +64,16 @@ Older runs kept their results **inside** the run folder:
 
 ```text
 reports/
-    2026-10-01-090000/
+    20261001-090000/
         run.json
         allure-results/             the old place
 ```
 
-Test Wright still reads these, with one rule: a run's old `allure-results` folder is used **only** when that run has no `allure-<run>/results` beside it. If you convert such a run again, the new folder is written and the old one is ignored from then on.
+Test Wright still reads these, with one rule: a run's old `allure-results` folder is used **only** when that run has no `<run>-allure/results` beside it. If you convert such a run again, the new folder is written and the old one is ignored from then on.
 
-For a single old run, the report is written to the run's new `allure-<run>/report` folder.
+For a single old run, the report is written to the run's new `<run>-allure/report` folder.
+
+Runs saved before the `yyyyMMdd-HHmmss` naming have a folder such as `2026-11-08-101500123`, and their Allure files are in `allure-2026-11-08-101500123` (`allure-` in front of the run name). Test Wright still reads these too. If you convert such a run again, the results go to `2026-11-08-101500123-allure`, and the old `allure-…` folder is skipped from then on, so a merge does not count the run twice.
 
 ---
 

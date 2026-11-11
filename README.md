@@ -52,7 +52,7 @@ The G4 Test Wright side bar has a **Documentation** view under **Test Wright**. 
 * **Environments** — pick one of the workspace `environments/` files; it is sent to the engine and set as the bots' default environment.
 * **Honest statuses** — a bot **fails** only when an assertion fails. An exception without a failed assertion is a **warning** (Allure *broken*).
 * **Run history** — every run is saved under `reports/<run>/` with a `run.json` summary and one G4 report per bot. Open any run, drill into a bot's report, or drag the run back into the plan to rerun it.
-* **Allure 3 built in** — runs write Allure results to `reports/allure-<run>`, and Test Wright builds the Allure 3 report for one run or merges all of them, in a VS Code tab or your browser. No Java needed.
+* **Allure 3 built in** — runs write Allure results to `reports/<run>-allure`, and Test Wright builds the Allure 3 report for one run or merges all of them, in a VS Code tab or your browser. No Java needed.
 * **Scheduling** — schedule up to five runs; they fire even when the Test Wright tab is closed.
 
 ## Commands
@@ -65,7 +65,7 @@ Every command is listed under the `G4 Test Wright` category in the Command Palet
 | `TestWright.OpenNew` | Open New Test Wright Tab | Command Palette; the **Open Test Wright** link in the launcher view | Opens another Test Wright tab, even when one is open. | Tabs share one saved session. |
 | `TestWright.AddPracticeBots` | Add Practice Bots | Command Palette; the **Add Practice Bots** link in the launcher view | Copies the practice bots into the open project. | Needs a G4 project (the folder that holds `manifest.json`). Existing files are kept. |
 | `TestWright.ShowRunReport` | Open Run Report | Explorer menu for a `run.json` file | Opens the summary of that run. | Hidden from the Command Palette. Select a `run.json` first. |
-| `TestWright.ConvertRunToAllure` | Convert Run to Allure Results | Explorer menu for a `run.json` file | Writes the Allure results (`allure-<run>/results`) for that run. | Hidden from the Command Palette. Select a `run.json` first. |
+| `TestWright.ConvertRunToAllure` | Convert Run to Allure Results | Explorer menu for a `run.json` file | Writes the Allure results (`<run>-allure/results`) for that run. | Hidden from the Command Palette. Select a `run.json` first. |
 | `TestWright.RefreshDocuments` | Refresh Documentation | Title bar of the **Documentation** view | Reads the learning paths folder again. | Hidden from the Command Palette. |
 | `TestWright.ShowComponentGallery` | Show Component Gallery (Development) | Command Palette, only in the Extension Development Host | Opens the gallery of the `g4-*` webview components. | For contributors. |
 
@@ -83,7 +83,7 @@ Bots tree, plan, repositories  ⇄   Discovery      bots/ → tests and suites
                                     Run service    POST /api/v4/g4/automation/invoke
                                     Evaluator      response → passed/failed/warning/broken
                                     Repositories   reports/<run>/run.json, *.g4rpt
-                                    Allure         allure-<run>/results → Allure 3 report
+                                    Allure         <run>-allure/results → Allure 3 report
                                     Scheduler      timed runs (kept in the workspace)
 ```
 
@@ -142,11 +142,11 @@ Every run creates one folder under the project's reports folder, and its Allure 
 
 ```none
 reports/
-├── 2026-10-08-213643907/          # run name: yyyy-MM-dd-HHmmssfff
+├── 20261008-213643/               # run name: yyyyMMdd-HHmmss
 │   ├── run.json                   # run summary: settings, tally, one entry per execution
 │   ├── a.p1.g4rpt                 # G4 automation report per execution (Base64 JSON)
 │   └── smoke.login.p2.i1.g4rpt    # plan position 2, iteration 1
-├── allure-2026-10-08-213643907/
+├── 20261008-213643-allure/
 │   ├── results/                   # written when Collect is on
 │   └── report/                    # built when you open the Allure report
 └── allure-merged/                 # built when you open the report of several runs

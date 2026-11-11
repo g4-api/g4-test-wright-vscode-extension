@@ -310,7 +310,7 @@ All the iteration messages (`Run refused`, `Every iteration is excluded`, `Not i
 
 ### No Allure results under '<folder>'. Turn Collect on and run, or convert a run first
 
-- **Cause:** The folder holds no `allure-<run>/results`.
+- **Cause:** The folder holds no `<run>-allure/results`.
 - **Fix:** Turn **Collect** on and run again, or convert the run.
 - **Source:** `src/services/allure-report-service.ts:282`
 

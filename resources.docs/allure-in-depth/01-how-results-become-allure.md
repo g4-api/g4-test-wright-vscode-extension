@@ -21,8 +21,8 @@ Open the folder of a run that collected Allure results. Next to the run folder y
 
 ```text
 reports/
-    2026-11-08-101500/              run.json and one .g4rpt per bot
-    allure-2026-11-08-101500/
+    20261108-101500/              run.json and one .g4rpt per bot
+    20261108-101500-allure/
         results/                    the files written by the conversion
 ```
 

@@ -240,17 +240,21 @@ export class Utilities {
     }
 
     /**
-     * Builds a run folder name from a date: `yyyy-MM-dd-HHmmssfff`, the G4 Studio report naming.
+     * Builds a run folder name from a date: `yyyyMMdd-HHmmss`, the naming of G4 Studio reports and autonomous runs.
      *
      * @param date - The run start time.
      * @returns The run name.
      */
     public static newRunName(date: Date = new Date()): string {
-        const pad = (value: number, length = 2): string => value.toString().padStart(length, '0');
+        // Local time, sortable and readable; the caller adds -2, -3... when two runs start in the same second.
+        const convertToTwoDigitText = (value: number): string => `${value}`.padStart(2, '0');
+        const month = convertToTwoDigitText(date.getMonth() + 1);
+        const day = convertToTwoDigitText(date.getDate());
+        const hours = convertToTwoDigitText(date.getHours());
+        const minutes = convertToTwoDigitText(date.getMinutes());
+        const seconds = convertToTwoDigitText(date.getSeconds());
 
-        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}-` +
-            `${pad(date.getHours())}${pad(date.getMinutes())}${pad(date.getSeconds())}` +
-            `${pad(date.getMilliseconds(), 3)}`;
+        return `${date.getFullYear()}${month}${day}-${hours}${minutes}${seconds}`;
     }
 
     /**

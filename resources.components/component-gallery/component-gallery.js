@@ -10,7 +10,7 @@
     const SAMPLE_RECORD = {
         type: 'g4-test-wright-run',
         version: 1,
-        name: '2026-10-08-213643907',
+        name: '20261008-213643',
         label: 'Nightly smoke',
         scheduled: true,
         startedAt: new Date().toISOString(),

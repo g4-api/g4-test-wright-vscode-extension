@@ -93,7 +93,7 @@ For messages and problems, see [Troubleshooting](troubleshooting.md).
 **Steps:**
 
 1. Run again, or convert the run, so the report is fresh. Open the report once in Test Wright.
-2. In the Explorer, find the report folder: `allure-<run>/report` for one run, or `allure-merged` for all runs together.
+2. In the Explorer, find the report folder: `<run>-allure/report` for one run, or `allure-merged` for all runs together.
 3. Compress that folder into one zip file.
 4. Send the file.
 5. Tell the reader that links to other sites do nothing, and that the report shows the results from the time it was generated.

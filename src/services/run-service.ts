@@ -6,8 +6,8 @@
  * bot. When the plan has iterations, the whole suite runs once per included iteration, and each item
  * sends its row of that iteration as a one-row data source. Each finished execution is saved as a
  * Base64 .g4rpt (the G4 Studio report format) inside the run folder
- * `<reports>/<yyyy-MM-dd-HHmmssfff>/`, next to run.json. When Allure collection is on, the results go
- * to `<reports>/allure-<run>/results/` beside the run folder.
+ * `<reports>/<yyyyMMdd-HHmmss>/`, next to run.json. When Allure collection is on, the results go
+ * to `<reports>/<run>-allure/results/` beside the run folder.
  */
 import * as fs from 'node:fs/promises';
 import * as os from 'node:os';
@@ -257,18 +257,17 @@ export class RunService implements vscode.Disposable {
         return true;
     }
 
-    // Picks the run folder: named after the start time, one millisecond later while that name is
-    // taken. Scheduled runs due in the same minute start within the same millisecond, and would
-    // otherwise write into one folder. Synchronous, so no other run can claim the name meanwhile.
+    // Picks the run folder: named after the start time (yyyyMMdd-HHmmss), with -2, -3... added while
+    // that name is taken. Scheduled runs due in the same minute start within the same second, and
+    // would otherwise write into one folder. Synchronous, so no other run can claim the name meanwhile.
     private newRunFolder(startedAt: Date): { runName: string; runFolder: string } {
         const reportsFolder = Utilities.getReportsFolder() || path.join(os.tmpdir(), 'g4-test-wright', 'reports');
-        let time = startedAt.getTime();
-        let runName = Utilities.newRunName(startedAt);
+        const baseName = Utilities.newRunName(startedAt);
+        let runName = baseName;
         let runFolder = path.join(reportsFolder, runName);
 
-        while (this._activeRunFolders.has(runFolder) || existsSync(runFolder)) {
-            time += 1;
-            runName = Utilities.newRunName(new Date(time));
+        for (let attempt = 2; this._activeRunFolders.has(runFolder) || existsSync(runFolder); attempt++) {
+            runName = `${baseName}-${attempt}`;
             runFolder = path.join(reportsFolder, runName);
         }
 
@@ -407,7 +406,7 @@ export class RunService implements vscode.Disposable {
         }
     }
 
-    // Converts the run into Allure results (allure-<run>/results) without failing the run on errors.
+    // Converts the run into Allure results (<run>-allure/results) without failing the run on errors.
     private async writeAllureResults(runFolder: string, log: (text: string, kind?: string) => void): Promise<void> {
         try {
             const { resultsFolder, count } = await AllureConverter.convertRun(runFolder);
