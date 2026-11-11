@@ -16,7 +16,7 @@ Each path is a **self-contained folder of numbered modules** you can work throug
 | --- | --- | --- | --- | --- | --- |
 | 1 | [📗 Run Your Bots](run-your-bots/README.md) | Testing your automations | Build a plan, run it, read the results, open Allure, schedule runs | ~65 min | Beginner |
 | 2 | [📘 Data-Driven Runs](data-driven-runs/README.md) | Testing with many sets of values | Make bots read columns, fill the iterations sheet, import and export data, read each iteration | ~35 min | Intermediate |
-| 3 | [📙 Allure in Depth](allure-in-depth/README.md) | Understanding and sharing your reports | See how results become Allure, read the categories, find every folder, fix a failing Allure command, share a report offline | ~35 min | Intermediate |
+| 3 | [📙 Allure in Depth](allure-in-depth/README.md) | Understanding and sharing your reports | See how results become Allure, read the categories, find every folder, fix a failing Allure command, share a report offline | ~34 min | Intermediate |
 | 4 | [📕 Diagnose a Failing Run](diagnose-a-failing-run/README.md) | Finding out why a run is not green | Match a status to its rule, read the output channel, understand engine errors, rerun one bot, read run.json from a script | ~30 min | Intermediate |
 
 ---

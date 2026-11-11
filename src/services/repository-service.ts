@@ -65,9 +65,7 @@ export class RepositoryService {
             }
 
             const runFolder = path.dirname(filePath);
-            const hasAllure = await RepositoryService.testFolder(AllureConverter.getResultsFolder(runFolder))
-                || await RepositoryService.testFolder(path.join(AllureConverter.getLegacyAllureFolder(runFolder), 'results'))
-                || await RepositoryService.testFolder(path.join(runFolder, 'allure-results'));
+            const hasAllure = await RepositoryService.testFolder(AllureConverter.getResultsFolder(runFolder));
 
             reports.push({
                 path: filePath,
@@ -150,7 +148,7 @@ export class RepositoryService {
             const entryPath = path.join(folderPath, entry.name);
 
             if (entry.isDirectory()) {
-                // Allure folders (<run>-allure, legacy allure-<run>, allure-merged) hold no run.json or bots.
+                // Allure folders (<run>-allure, allure-merged) hold no run.json or bots.
                 const isAllureFolder = AllureConverter.getAllureRunName(entry.name) !== null || entry.name === ALLURE_MERGED_FOLDER;
                 const isSkipped = entry.name === 'node_modules' || isAllureFolder;
 

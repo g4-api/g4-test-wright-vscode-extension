@@ -24,9 +24,6 @@ import { BrandingService } from './branding-service';
 import { WebviewPages } from '../extensions/webview-pages';
 import { Logger } from '../logging/logger';
 
-// Results folder inside a run folder, from before the separate Allure folder layout (read only).
-const LEGACY_RESULTS_FOLDER = 'allure-results';
-
 // Content types for the files an Allure report holds.
 const CONTENT_TYPES: Record<string, string> = {
     '.css': 'text/css; charset=utf-8',
@@ -154,8 +151,6 @@ export class AllureReportService implements vscode.Disposable {
      * - a run's `<run>-allure` folder: its `results`;
      * - any other folder (the reports root): searched two levels down for `<run>-allure/results`,
      *   so selecting the reports root merges every run into one report.
-     * Older runs keep their results in `allure-<run>/results` or, older still, `<run>/allure-results`;
-     * those are still found, and a run's `allure-<run>` folder is skipped once it has a `<run>-allure` folder.
      *
      * @param folderPath - The selected folder.
      * @returns The results folders, sorted by path.
@@ -183,32 +178,21 @@ export class AllureReportService implements vscode.Disposable {
 
             for (const entry of entries.filter((candidate) => candidate.isDirectory())) {
                 const entryPath = path.join(current, entry.name);
-                const runName = AllureConverter.getAllureRunName(entry.name);
+                const isAllureFolder = AllureConverter.getAllureRunName(entry.name) !== null;
 
-                if (runName === null) {
-                    // A run folder's oldest results are used only when it has no Allure folder of either naming.
-                    const legacyFolder = path.join(entryPath, LEGACY_RESULTS_FOLDER);
-                    const hasAllureFolder = await AllureReportService.testResultsFolder(AllureConverter.getResultsFolder(entryPath))
-                        || await AllureReportService.testResultsFolder(path.join(AllureConverter.getLegacyAllureFolder(entryPath), 'results'));
-
-                    if (!hasAllureFolder && await AllureReportService.testResultsFolder(legacyFolder)) {
-                        folders.push(legacyFolder);
-                    } else if (depth < 2) {
+                // Any other folder may hold runs further down, so it is searched to the depth limit.
+                if (!isAllureFolder) {
+                    if (depth < 2) {
                         await visit(entryPath, depth + 1);
                     }
 
                     continue;
                 }
 
-                // A legacy allure-<run> folder is skipped once the run was converted again into <run>-allure,
-                // so a merge never counts one run twice.
-                const runFolder = path.join(current, runName);
-                const isLegacyFolder = entryPath === AllureConverter.getLegacyAllureFolder(runFolder);
-                const isReplaced = isLegacyFolder
-                    && await AllureReportService.testResultsFolder(AllureConverter.getResultsFolder(runFolder));
+                // A run's <run>-allure folder counts when its results folder holds results.
                 const resultsFolder = path.join(entryPath, 'results');
 
-                if (!isReplaced && await AllureReportService.testResultsFolder(resultsFolder)) {
+                if (await AllureReportService.testResultsFolder(resultsFolder)) {
                     folders.push(resultsFolder);
                 }
             }
@@ -231,49 +215,30 @@ export class AllureReportService implements vscode.Disposable {
             return path.join(folderPath, ALLURE_MERGED_FOLDER);
         }
 
-        const resultsFolder = resultsFolders[0];
-
-        // Oldest layout: <run>/allure-results gets its report in the run's <run>-allure folder.
-        return path.basename(resultsFolder) === LEGACY_RESULTS_FOLDER
-            ? AllureConverter.getReportFolder(path.dirname(resultsFolder))
-            : path.join(path.dirname(resultsFolder), 'report');
+        // One run's report sits beside its results, in the same <run>-allure folder.
+        return path.join(path.dirname(resultsFolders[0]), 'report');
     }
 
     /**
      * Returns the run name a single results folder belongs to.
      *
-     * @param resultsFolder - `<run>-allure/results`, a legacy `allure-<run>/results`, or a legacy `<run>/allure-results`.
-     * @returns The run name.
+     * @param resultsFolder - A run's `<run>-allure/results` folder.
+     * @returns The run name, or the parent folder name when it is not a `<run>-allure` folder.
      */
     public static getRunName(resultsFolder: string): string {
         const parentName = path.basename(path.dirname(resultsFolder));
 
-        // The oldest layout keeps its results inside the run folder itself.
-        if (path.basename(resultsFolder) === LEGACY_RESULTS_FOLDER) {
-            return parentName;
-        }
-
         return AllureConverter.getAllureRunName(parentName) ?? parentName;
     }
 
-    // The results folder of a run folder or of a run's Allure folder, or null. A run folder prefers
-    // <run>-allure, then the legacy allure-<run>, then the oldest <run>/allure-results.
+    // The results folder of a run folder (its <run>-allure/results) or of a <run>-allure folder, or null.
     private static async findOwnResultsFolder(folderPath: string): Promise<string | null> {
-        const candidates = AllureConverter.getAllureRunName(path.basename(folderPath)) === null
-            ? [
-                AllureConverter.getResultsFolder(folderPath),
-                path.join(AllureConverter.getLegacyAllureFolder(folderPath), 'results'),
-                path.join(folderPath, LEGACY_RESULTS_FOLDER)
-            ]
-            : [path.join(folderPath, 'results')];
+        const isAllureFolder = AllureConverter.getAllureRunName(path.basename(folderPath)) !== null;
+        const candidate = isAllureFolder
+            ? path.join(folderPath, 'results')
+            : AllureConverter.getResultsFolder(folderPath);
 
-        for (const candidate of candidates) {
-            if (await AllureReportService.testResultsFolder(candidate)) {
-                return candidate;
-            }
-        }
-
-        return null;
+        return await AllureReportService.testResultsFolder(candidate) ? candidate : null;
     }
 
     /**

@@ -95,4 +95,4 @@ Stop the engine, run one bot, and open its Allure report.
 
 ---
 
-**Next up** 👉 [Module 3: Merged and legacy folders](03-merged-and-legacy-folders.md)
+**Next up** 👉 [Module 3: Run and merged folders](03-merged-and-legacy-folders.md)
