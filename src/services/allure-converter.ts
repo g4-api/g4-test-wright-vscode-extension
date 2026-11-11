@@ -20,7 +20,6 @@
  *     reports/<run>-allure/results/    Allure results
  *     reports/<run>-allure/report/     generated Allure report
  *     reports/allure-merged/           report merged from several runs
- *   Runs saved before this naming have their Allure files in reports/allure-<run>/; those are still read.
  *
  * RESOURCES:
  * Allure result format: https://allurereport.org/docs/how-it-works-test-result-file/
@@ -44,9 +43,6 @@ export const ALLURE_CATEGORIES = [
 
 // Suffix of a run's Allure folder: <run>-allure beside the run folder.
 const ALLURE_FOLDER_SUFFIX = '-allure';
-
-// Prefix of a run's Allure folder from before the <run>-allure naming: allure-<run> (read only).
-const LEGACY_ALLURE_FOLDER_PREFIX = 'allure-';
 
 // Folder of a report merged from several runs.
 export const ALLURE_MERGED_FOLDER = 'allure-merged';
@@ -142,37 +138,16 @@ export class AllureConverter {
     }
 
     /**
-     * Returns the run name an Allure folder belongs to: `<run>` for `<run>-allure`, or for a legacy `allure-<run>`.
+     * Returns the run name an Allure folder belongs to: `<run>` for `<run>-allure`.
      *
      * @param folderName - The folder name, without its parent path.
      * @returns The run name, or null when the folder is not a run's Allure folder (the merged folder is not).
      */
     public static getAllureRunName(folderName: string): string | null {
-        // A merged report belongs to no single run.
-        if (folderName === ALLURE_MERGED_FOLDER) {
-            return null;
-        }
+        // Only <run>-allure belongs to a run; a bare "-allure" names no run.
+        const isRunAllureFolder = folderName.endsWith(ALLURE_FOLDER_SUFFIX) && folderName.length > ALLURE_FOLDER_SUFFIX.length;
 
-        // The current naming comes first; the legacy prefix is read for runs saved before it.
-        if (folderName.endsWith(ALLURE_FOLDER_SUFFIX) && folderName.length > ALLURE_FOLDER_SUFFIX.length) {
-            return folderName.slice(0, -ALLURE_FOLDER_SUFFIX.length);
-        }
-
-        if (folderName.startsWith(LEGACY_ALLURE_FOLDER_PREFIX) && folderName.length > LEGACY_ALLURE_FOLDER_PREFIX.length) {
-            return folderName.slice(LEGACY_ALLURE_FOLDER_PREFIX.length);
-        }
-
-        return null;
-    }
-
-    /**
-     * Returns the Allure folder a run had before the `<run>-allure` naming: `allure-<run>` beside the run folder.
-     *
-     * @param runFolder - The run folder that holds run.json.
-     * @returns The run's legacy Allure folder (read only; new results are never written there).
-     */
-    public static getLegacyAllureFolder(runFolder: string): string {
-        return path.join(path.dirname(runFolder), `${LEGACY_ALLURE_FOLDER_PREFIX}${path.basename(runFolder)}`);
+        return isRunAllureFolder ? folderName.slice(0, -ALLURE_FOLDER_SUFFIX.length) : null;
     }
 
     /**
