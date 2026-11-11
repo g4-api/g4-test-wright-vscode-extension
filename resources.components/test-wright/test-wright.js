@@ -34,7 +34,7 @@ const state = {
     reportsAppendMode: false,
     reportDateFilter: '',            // session-only, never persisted
     allureFolderPath: '',            // Allure source folder ('' = the reports folder)
-    allureEnabled: true,             // runs write Allure results (allure-<run>)
+    allureEnabled: true,             // runs write Allure results (<run>-allure)
     allureOpenInBrowser: false,      // Open target: browser (true) or VS Code tab (false)
     collapsedSections: new Set(['allure']),
     accordionSizes: { plans: 1, reports: 1, allure: 1 }

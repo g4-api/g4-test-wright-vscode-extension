@@ -42,7 +42,7 @@ export class ShowRunReportCommand extends CommandBase {
 }
 
 /**
- * Writes Allure results (allure-<run>/results) for a run.json (`TestWright.ConvertRunToAllure`, Explorer context menu).
+ * Writes Allure results (<run>-allure/results) for a run.json (`TestWright.ConvertRunToAllure`, Explorer context menu).
  */
 export class ConvertRunToAllureCommand extends CommandBase {
     /**

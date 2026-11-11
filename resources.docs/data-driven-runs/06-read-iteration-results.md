@@ -59,7 +59,7 @@ Every execution has its own report file in the run folder. The name holds the bo
 
 ```text
 reports/
-└── 2026-11-08-101500000/
+└── 20261108-101500/
     ├── run.json
     ├── practice.login-with-columns.p1.i1.g4rpt
     ├── practice.login-with-columns.p1.i2.g4rpt

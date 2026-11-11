@@ -21,15 +21,15 @@ Read the result of a run from a script, list the bots that need attention, and s
 
 ### Step 1: Find the run
 
-Every run is a folder in the `reports` folder of the project. The name is the start time, `yyyy-MM-dd-HHmmssfff`, so the newest run sorts last. Inside it, `run.json` holds the summary and one `.g4rpt` file per bot.
+Every run is a folder in the `reports` folder of the project. The name is the start time, `yyyyMMdd-HHmmss`, so the newest run sorts last. Inside it, `run.json` holds the summary and one `.g4rpt` file per bot.
 
 ```text
 reports/
-    2026-11-08-101502123/
+    20261108-101502/
         run.json
         smoke.login.p1.g4rpt
         smoke.checkout.p2.g4rpt
-    allure-2026-11-08-101502123/
+    20261108-101502-allure/
 ```
 
 The `reports` folder sits under the folder named by `clientReportSettings.reportsFolder` in `manifest.json`. When that key is empty, it sits in the project folder.

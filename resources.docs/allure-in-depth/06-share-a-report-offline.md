@@ -18,7 +18,7 @@ In this module, you will:
 
 | You want to send | Folder |
 | --- | --- |
-| One run | `allure-<run>/report`, next to the run folder |
+| One run | `<run>-allure/report`, next to the run folder |
 | All runs together | `allure-merged`, inside the folder you selected (usually the reports folder) |
 
 Send the **report** folder, not the `results` folder. The results are Allure's input and need the Allure command to be read.

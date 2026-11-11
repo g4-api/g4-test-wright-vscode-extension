@@ -3,7 +3,7 @@
  */
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
-import { AllureConverter } from './allure-converter';
+import { ALLURE_MERGED_FOLDER, AllureConverter } from './allure-converter';
 import { JsonReader } from '../extensions/json-reader';
 import { PlanFile, PlanSummary, ReportSummary, RunRecord } from '../models/test-wright-models';
 
@@ -66,6 +66,7 @@ export class RepositoryService {
 
             const runFolder = path.dirname(filePath);
             const hasAllure = await RepositoryService.testFolder(AllureConverter.getResultsFolder(runFolder))
+                || await RepositoryService.testFolder(path.join(AllureConverter.getLegacyAllureFolder(runFolder), 'results'))
                 || await RepositoryService.testFolder(path.join(runFolder, 'allure-results'));
 
             reports.push({
@@ -149,7 +150,9 @@ export class RepositoryService {
             const entryPath = path.join(folderPath, entry.name);
 
             if (entry.isDirectory()) {
-                const isSkipped = entry.name === 'node_modules' || entry.name.startsWith('allure-');
+                // Allure folders (<run>-allure, legacy allure-<run>, allure-merged) hold no run.json or bots.
+                const isAllureFolder = AllureConverter.getAllureRunName(entry.name) !== null || entry.name === ALLURE_MERGED_FOLDER;
+                const isSkipped = entry.name === 'node_modules' || isAllureFolder;
 
                 if (!isSkipped) {
                     files.push(...await RepositoryService.findFiles(entryPath, isMatch, depth + 1));

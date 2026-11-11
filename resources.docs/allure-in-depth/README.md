@@ -63,8 +63,8 @@ Work through these in order. Each one builds on the one before.
 
 | Word | What it means |
 | --- | --- |
-| **Results** | The Allure input: `*-result.json` files and attachments, in `allure-<run>/results`. |
-| **Report** | The Allure output: web pages, in `allure-<run>/report`. |
+| **Results** | The Allure input: `*-result.json` files and attachments, in `<run>-allure/results`. |
+| **Report** | The Allure output: web pages, in `<run>-allure/report`. |
 | **Merged report** | One report built from the results of several runs, in `allure-merged`. |
 | **Category** | A group of problems of the same kind, shown on the **Categories** tab. |
 | **Air gap** | The rule that a report page may talk only to the local server that shows it. |
