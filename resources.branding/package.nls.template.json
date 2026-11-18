@@ -1,0 +1,14 @@
+{
+    "command.TestWright.AddPracticeBots.category": "{testWright}",
+    "command.TestWright.ConvertRunToAllure.category": "{testWright}",
+    "command.TestWright.OpenNew.category": "{testWright}",
+    "command.TestWright.RefreshDocuments.category": "{testWright}",
+    "command.TestWright.Show.category": "{testWright}",
+    "command.TestWright.ShowComponentGallery.category": "{testWright}",
+    "command.TestWright.ShowRunReport.category": "{testWright}",
+    "configuration.title": "{testWright}",
+    "description": "A {product} bots test workbench for VS Code: discover the bots of a {product} project, build run plans with drag and drop, run them against the {product} engine, and review {product} and Allure reports.",
+    "displayName": "{studio} Test Wright",
+    "viewsContainer.g4TestWrightContainer.title": "{testWright}",
+    "viewsWelcome.g4TestWrightLauncher.0.contents": "Discover the bots of your {product} project, build a run plan, and run it against the {product} engine.\n[Open Test Wright](command:TestWright.OpenNew)\nEach click opens another Test Wright tab, so you can work on several plans at once. Each file under bots/ is a test and each subfolder is a suite. Runs are saved under reports/ with {product} and Allure reports.\nNew to Test Wright? Add a few practice bots to this project and follow the learning path.\n[Add Practice Bots](command:TestWright.AddPracticeBots)"
+}

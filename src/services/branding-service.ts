@@ -145,14 +145,22 @@ export class BrandingService {
             return false;
         }
 
+        // Name the version in use, so a Hub with the same branding answers 304 without a body.
+        const version = BrandingService._settings.version;
+        const isVersionKnown = typeof version === 'string' && version !== '';
+        const headers: Record<string, string> = isVersionKnown
+            ? { 'If-None-Match': `"${version}"` }
+            : {};
+
         // Ask the Hub for its branding, with a timeout so a slow Hub never delays the extension.
         const brandingUrl = new URL(BRANDING_ROUTE, `${baseUrl.replace(TRAILING_SLASHES_PATTERN, '')}/`);
         let receivedSettings: unknown;
 
         try {
-            const response = await fetch(brandingUrl, { signal: AbortSignal.timeout(REQUEST_TIMEOUT_MILLISECONDS) });
+            const response = await fetch(brandingUrl, { headers, signal: AbortSignal.timeout(REQUEST_TIMEOUT_MILLISECONDS) });
 
-            // Keep the current branding when the Hub has no branding route or fails, as an older Hub does.
+            // Keep the current branding when it is unchanged (304), or the Hub has no branding route or fails, as an
+            // older Hub does.
             if (!response.ok) {
                 return false;
             }
@@ -230,4 +238,7 @@ export interface BrandingSettings {
 
     /** The value of every placeholder, keyed by placeholder name without braces, for example engineTm. */
     tokens: Record<string, string>;
+
+    /** The fingerprint of the Hub branding, sent back as If-None-Match; absent before the Hub answered. */
+    version?: string;
 }
