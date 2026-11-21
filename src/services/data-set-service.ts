@@ -37,6 +37,35 @@ const COLUMN_PLACEHOLDER_PATTERN = /\{\{\$\scolumns\.(\w+)\s\}\}/gi;
  */
 export class DataSetService {
     /**
+     * Converts a data value into text: the text shown in a table cell, and the row values a run
+     * records for each data row.
+     *
+     * @param value - A value of a data source row.
+     * @returns The text: strings as they are, other primitives as written, objects as JSON.
+     */
+    public static convertToText(value: unknown): string {
+        // Treat a missing value as an empty cell.
+        if (value === null || value === undefined) {
+            return '';
+        }
+
+        // Keep text and primitives as written, so a number or boolean shows like in the source.
+        if (typeof value === 'string') {
+            return value;
+        }
+
+        // Write numbers, booleans, and big integers in their source form after narrowing them.
+        const isPrimitive = typeof value === 'number' || typeof value === 'boolean' || typeof value === 'bigint';
+
+        if (isPrimitive) {
+            return `${value}`;
+        }
+
+        // Show nested objects and arrays as JSON instead of '[object Object]'.
+        return JSON.stringify(value);
+    }
+
+    /**
      * Describes the data of several bots for the iterations editor.
      *
      * @param filePaths - Absolute bot file paths.
@@ -96,6 +125,36 @@ export class DataSetService {
         } catch {
             return null;
         }
+    }
+
+    /**
+     * Counts the rows the engine will run for a bot's own data source.
+     *
+     * @param bot - The parsed bot.
+     * @param filePath - The bot file, used to resolve a relative data source file.
+     * @returns The row count, or undefined when it cannot be known on this machine.
+     *
+     * @remarks
+     * Used to name data rows that the engine returned no result for. The count is unknown (and no
+     * row is reported missing) when the bot has no source, when the source has a filter (the
+     * engine selects rows with DataView syntax that is not repeated here), or when the source
+     * cannot be read from this machine.
+     */
+    public static async readSourceRowCount(bot: any, filePath: string): Promise<number | undefined> {
+        // Leave the count unknown when there is no source, or a filter the engine applies on its side.
+        const source = bot?.dataSource?.source;
+        const filter = bot?.dataSource?.filter;
+        const isSourceMissing = typeof source !== 'string' || source.trim() === '';
+        const isFiltered = typeof filter === 'string' && filter.trim() !== '';
+
+        if (isSourceMissing || isFiltered) {
+            return undefined;
+        }
+
+        // Count the array items the engine turns into rows; an unreadable source stays unknown.
+        const { items } = await DataSetService.readSourceItems(source, filePath);
+
+        return items === null ? undefined : items.length;
     }
 
     /**
@@ -162,34 +221,6 @@ export class DataSetService {
         const decoded = DataSetService.convertToTrimmedText(Buffer.from(json, 'base64').toString('utf8'));
 
         return DataSetService.testJsonStart(decoded) ? decoded : null;
-    }
-
-    /**
-     * Converts a data value into the text shown in a table cell.
-     *
-     * @param value - A value of a data source row.
-     * @returns The text: strings as they are, other primitives as written, objects as JSON.
-     */
-    private static convertToText(value: unknown): string {
-        // Treat a missing value as an empty cell.
-        if (value === null || value === undefined) {
-            return '';
-        }
-
-        // Keep text and primitives as written, so a number or boolean shows like in the source.
-        if (typeof value === 'string') {
-            return value;
-        }
-
-        // Write numbers, booleans, and big integers in their source form after narrowing them.
-        const isPrimitive = typeof value === 'number' || typeof value === 'boolean' || typeof value === 'bigint';
-
-        if (isPrimitive) {
-            return `${value}`;
-        }
-
-        // Show nested objects and arrays as JSON instead of '[object Object]'.
-        return JSON.stringify(value);
     }
 
     /**
@@ -276,6 +307,34 @@ export class DataSetService {
             return { rows: [], error: '' };
         }
 
+        // Read the source items; a source that is not a JSON array of rows starts cells empty.
+        const { items, error } = await DataSetService.readSourceItems(source, filePath);
+
+        if (items === null) {
+            return { rows: [], error };
+        }
+
+        // Keep object rows only, each reduced to the bot's columns as text.
+        const rows = items
+            .filter((row) => row !== null && typeof row === 'object' && !Array.isArray(row))
+            .map((row) => DataSetService.newRow(columns, row as Record<string, string>));
+
+        return { rows, error: '' };
+    }
+
+    /**
+     * Reads the items of a data source: a file (absolute, or relative to the bot), inline JSON, or
+     * Base64 of JSON.
+     *
+     * @param source - The data source text of the bot (not empty).
+     * @param filePath - The bot file, used to resolve a relative data source file.
+     * @returns The array items, or null and the reason when the source is not a JSON array.
+     *
+     * @remarks
+     * The engine reads a file path on its own machine; here a path is read from this machine, so
+     * callers treat a null result as "unknown", never as a failure of the bot.
+     */
+    private static async readSourceItems(source: string, filePath: string): Promise<{ items: unknown[] | null; error: string }> {
         // Read a file source (absolute, or relative to the bot), otherwise use the source text itself.
         const sourcePath = path.isAbsolute(source) ? source : path.join(path.dirname(filePath), source);
         let text = source;
@@ -290,31 +349,28 @@ export class DataSetService {
             // Not a readable file: the source is inline JSON or Base64.
         }
 
-        // Convert the text into rows; a source that is not a JSON array of objects starts cells empty.
+        // Convert the text into JSON text; anything that is not JSON or Base64 of JSON has no items.
         const json = DataSetService.convertToJson(text);
 
         if (json === null) {
-            return { rows: [], error: 'The bot data source is not a file, a JSON array, or Base64 of a JSON array.' };
+            return { items: null, error: 'The bot data source is not a file, a JSON array, or Base64 of a JSON array.' };
         }
 
+        // Parse the JSON text, reporting the parser's reason when it is not valid.
         let parsed: unknown;
 
         try {
             parsed = JSON.parse(json);
         } catch (error: unknown) {
-            return { rows: [], error: `The bot data source is not valid JSON: ${DataSetService.resolveErrorMessage(error)}` };
+            return { items: null, error: `The bot data source is not valid JSON: ${DataSetService.resolveErrorMessage(error)}` };
         }
 
+        // Accept only a JSON array, because each array item is one row.
         if (!Array.isArray(parsed)) {
-            return { rows: [], error: 'The bot data source is not a JSON array of rows.' };
+            return { items: null, error: 'The bot data source is not a JSON array of rows.' };
         }
 
-        // Keep object rows only, each reduced to the bot's columns as text.
-        const rows = parsed
-            .filter((row) => row !== null && typeof row === 'object' && !Array.isArray(row))
-            .map((row) => DataSetService.newRow(columns, row));
-
-        return { rows, error: '' };
+        return { items: parsed, error: '' };
     }
 
     /**

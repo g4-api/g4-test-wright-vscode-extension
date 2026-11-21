@@ -202,6 +202,7 @@ reports/
         run.json
         smoke.login.g4rpt
         smoke.login.p2.i1.g4rpt
+        users.p3.r2.g4rpt
     20261108-093000-allure/
         results/
         report/
@@ -234,11 +235,12 @@ Each entry of `tests`:
 
 | Field | Type | Meaning | Source |
 | --- | --- | --- | --- |
-| `runKey` | text | The row key, plus `@<iteration>` when the plan has iterations | `src/models/test-wright-models.ts:210` |
+| `runKey` | text | The row key, plus `@<iteration>` when the plan has iterations, plus `~r<data row>` for a row of the bot's own data source | `src/models/test-wright-models.ts:219` |
 | `key` | text | Plan row key | `src/models/test-wright-models.ts:213` |
 | `position` | number | One-based position in the plan | `src/models/test-wright-models.ts:219` |
-| `iteration` | number | One-based iteration; `0` when the plan had none | `src/models/test-wright-models.ts:219` |
-| `values` | object | The data row sent; absent for a bot without columns | `src/models/test-wright-models.ts:222` |
+| `iteration` | number | One-based iteration; `0` when the plan had none | `src/models/test-wright-models.ts:228` |
+| `dataRow` | number | One-based row of the bot's own data source; absent for plan iterations and static bots | `src/models/test-wright-models.ts:235` |
+| `values` | object | The data row sent or run; absent for a bot without columns | `src/models/test-wright-models.ts:238` |
 | `id`, `name`, `file`, `path`, `suite`, `tags` | text and array | The bot | `src/models/test-wright-models.ts:224-229` |
 | `status` | text | One of `not-run`, `queued`, `running`, `passed`, `failed`, `warning`, `broken`, `canceled` | `src/models/test-wright-models.ts:19` |
 | `start`, `stop`, `duration` | number | Epoch milliseconds, and milliseconds | `src/models/test-wright-models.ts:233-239` |
@@ -249,7 +251,9 @@ Each entry of `tests`:
 
 ### `.g4rpt` report
 
-One file per bot execution, in the run folder. It holds the Base64 text of the engine response JSON, the same format G4 Studio saves (`src/services/run-service.ts:348`). The name is the bot id without its extension, with `/` replaced by `.`, then `.p<position>` and `.i<iteration>` when they apply. A repeated name gets `-2`, `-3` and so on (`src/services/run-service.ts:515-530`).
+One file per bot execution, in the run folder. It holds the Base64 text of the engine response JSON, the same format G4 Studio saves (`src/services/run-service.ts:641-653`). The name is the bot id without its extension, with `/` replaced by `.`, then `.p<position>`, `.i<iteration>`, and `.r<data row>` when they apply. A repeated name gets `-2`, `-3` and so on (`src/services/run-service.ts:549-565`).
+
+A bot that runs its own data source gets all its rows back in one engine answer, one session per row. Test Wright saves one file per row, each holding only that row's session, and writes no combined file (`src/services/response-splitter.ts`, `src/services/run-service.ts:658-687`).
 
 ## Allure results layout
 

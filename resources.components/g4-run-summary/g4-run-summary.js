@@ -159,11 +159,12 @@
             const time = document.createElement('span');
             const hasReport = Boolean(test.reportFile);
 
-            // Name the execution by its plan position and iteration, so duplicate items and
-            // iterations of the same bot stay apart; older records have neither.
+            // Name the execution by its plan position, iteration, and data row, so duplicate items,
+            // iterations, and data rows of the same bot stay apart; older records have none of them.
             const runKey = test.runKey ?? test.id;
             const positionText = test.position ? ` #${test.position}` : '';
             const iterationText = test.iteration ? ` - iteration ${test.iteration}` : '';
+            const dataRowText = test.dataRow ? ` - data row ${test.dataRow}` : '';
 
             row.className = 'g4-run-summary__case';
             row.dataset.testId = `${prefix}-case-${runKey}`;
@@ -173,7 +174,7 @@
                 : G4Branding.getText('No {product} report: the bot got no engine response');
             top.className = 'g4-run-summary__case-top';
             name.className = 'g4-run-summary__case-name';
-            name.textContent = `${test.name}${positionText}${iterationText}`;
+            name.textContent = `${test.name}${positionText}${iterationText}${dataRowText}`;
             time.className = 'g4-run-summary__case-time';
             time.textContent = formatDuration(test.duration);
             top.append(name, time, this.#newBadge(test.status));
@@ -193,7 +194,7 @@
                 details.push(`tags: ${test.tags.join(', ')}`);
             }
 
-            // Show the data row this execution sent, so a failing iteration shows its values.
+            // Show the data row this execution ran with, so a failing iteration or data row shows its values.
             const values = Object.entries(test.values ?? {});
 
             if (values.length > 0) {

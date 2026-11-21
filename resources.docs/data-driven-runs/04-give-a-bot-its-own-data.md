@@ -100,7 +100,10 @@ If the bot's data source cannot be read, the cells start empty. Nothing fails, a
 ## What happens at run time
 
 - **Plan with iterations:** each plan item sends **its own row** of the iteration as a one-row data source, in Base64. That row **replaces** the bot's `dataSource` for that execution only.
-- **Plan without iterations:** the plan runs once, and the bot's own `dataSource` is used as it is.
+- **Plan without iterations:** the plan runs once, and the bot's own `dataSource` is used as it is. The engine runs
+  the bot once per row and answers with all the rows together. Test Wright splits that answer, so **each row is its
+  own test**, named `data row 1`, `data row 2`, and so on. [Module 6](06-read-iteration-results.md) shows where to
+  find them.
 - **The bot file** is never changed.
 
 Values are always sent as **text**, so a column never mixes types. The engine rejects a column with mixed types.
@@ -120,6 +123,7 @@ Copy **login-with-columns** to a new bot file. Add a `dataSource` in form 2 with
 - [ ] You can write a `dataSource` as a file, a JSON array, and Base64
 - [ ] You know the first iteration starts from the bot's data
 - [ ] You know the sheet's row replaces the data source for one execution
+- [ ] You know a plan without iterations reports each row of the bot's data source as its own test
 - [ ] You know the bot file is never changed
 
 ---

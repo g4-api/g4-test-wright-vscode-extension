@@ -62,7 +62,7 @@ export class RunReportProvider implements vscode.Disposable {
     public async showBotReport(runFile: string, testId: string): Promise<void> {
         const record = await RepositoryService.readRun(runFile);
 
-        // Match the unique run key first: duplicate plan items and iterations share one bot id.
+        // Match the unique run key first: duplicate plan items, iterations, and data rows share one bot id.
         const test = record?.tests.find((candidate) => (candidate.runKey ?? candidate.id) === testId);
 
         if (test === undefined || !test.reportFile) {
@@ -74,7 +74,8 @@ export class RunReportProvider implements vscode.Disposable {
         const base64 = await fs.readFile(path.join(path.dirname(runFile), test.reportFile), 'utf8');
         const positionText = test.position ? ` #${test.position}` : '';
         const iterationText = test.iteration ? `, iteration ${test.iteration}` : '';
-        const title = `${test.name}${positionText}${iterationText} (${record?.name})`;
+        const dataRowText = test.dataRow ? `, data row ${test.dataRow}` : '';
+        const title = `${test.name}${positionText}${iterationText}${dataRowText} (${record?.name})`;
         const panel = vscode.window.createWebviewPanel('g4TestWright.botReport', title, vscode.ViewColumn.Active, {
             enableScripts: true,
             retainContextWhenHidden: true,

@@ -38,6 +38,10 @@ import { AllureConverter } from './allure-converter';
 import { BotRequestBuilder } from './bot-request-builder';
 import { BotsDiscoveryService } from './bots-discovery-service';
 import { DataSetService } from './data-set-service';
+import {
+    ResponseSplitter,
+    RowResponse
+} from './response-splitter';
 import { ResultEvaluator } from './result-evaluator';
 
 /**
@@ -121,6 +125,11 @@ export class RunService implements vscode.Disposable {
         const passes = RunService.getPasses(request);
         const records: TestRecord[] = passes.flatMap((pass) => request.tests.map((test) => RunService.newTestRecord(test, pass)));
 
+        // A bot that ran its own multi-row data source is split into one record per row; the run's
+        // results list those row records in place of the plan item's record, in plan order.
+        const rowRecords = new Map<TestRecord, TestRecord[]>();
+        const getResultRecords = (): TestRecord[] => records.flatMap((record) => rowRecords.get(record) ?? [record]);
+
         this._activeRuns.set(request.runId, runEntry);
         this._onActiveRunsChanged.fire(this._activeRuns.size);
 
@@ -135,7 +144,7 @@ export class RunService implements vscode.Disposable {
 
             // Run the passes one after another: the next iteration starts only after every item of the
             // current one finished, so the whole suite runs once per iteration, in plan order.
-            const context: TestContext = { client, manifest, runFolder, runEntry, usedReportNames, log };
+            const context: TestContext = { client, manifest, runFolder, runEntry, usedReportNames, rowRecords, log };
 
             for (const pass of passes) {
                 if (runEntry.canceled) {
@@ -169,8 +178,10 @@ export class RunService implements vscode.Disposable {
                     RunService.getLogKind(record.status));
             }
 
+            // Count and save the executions: one per data row for a bot that ran its own data source.
+            const resultRecords = getResultRecords();
             const finishedAt = new Date();
-            const tally = RunService.newTally(records);
+            const tally = RunService.newTally(resultRecords);
             const runRecord: RunRecord = {
                 type: 'g4-test-wright-run',
                 version: 1,
@@ -187,7 +198,7 @@ export class RunService implements vscode.Disposable {
                 iterations: passes[0]?.number > 0 ? passes.length : 0,
                 status: RunService.getRunStatus(tally),
                 tally,
-                tests: records
+                tests: resultRecords
             };
             const runFile = path.join(runFolder, 'run.json');
 
@@ -224,7 +235,7 @@ export class RunService implements vscode.Disposable {
 
             return {
                 runId: request.runId,
-                tally: RunService.newTally(records),
+                tally: RunService.newTally(getResultRecords()),
                 totalTime: Date.now() - startedAt.getTime(),
                 failed: true,
                 canceled: runEntry.canceled,
@@ -342,40 +353,37 @@ export class RunService implements vscode.Disposable {
                 return;
             }
 
-            // Save the response in the G4 Studio report format (Base64 of the JSON).
-            record.reportFile = RunService.newReportFileName(record, context.usedReportNames);
-            await fs.writeFile(path.join(context.runFolder, record.reportFile), Utilities.convertToBase64(JSON.stringify(result.data)), 'utf8');
+            // A bot that ran its own data source gets every row back in one response; split it into one
+            // record per row, so each row is its own test in the panel, run.json, Allure, and the viewer.
+            const isOwnDataSource = record.values === undefined && ResponseSplitter.testDataSource(automation);
+            const rowResponses = isOwnDataSource ? ResponseSplitter.getRowResponses(result.data) : [];
 
-            const evaluation = ResultEvaluator.evaluate(result.data);
+            if (rowResponses.length > 0) {
+                const expectedRowCount = await DataSetService.readSourceRowCount(bot, record.path);
+                const rowRecords = await RunService.saveRowRecords({ record, rowResponses, expectedRowCount, context });
 
-            record.status = evaluation.status;
-            record.message = evaluation.message;
-            record.assertions = evaluation.assertions;
-            record.exceptions = evaluation.exceptions;
+                context.rowRecords.set(record, rowRecords);
+
+                return;
+            }
+
+            // Save and evaluate the response of a single execution (no rows, or one plan iteration).
+            await RunService.saveRecordResult(record, result.data, context);
         } catch (error: any) {
             // One bot's failure (for example its report cannot be written) never ends the run.
             this._logger.error(`Bot ${recordLabel} failed.`, undefined, error);
             record.status = 'broken';
             record.message = `The engine answered, but the result could not be saved or evaluated: ${error?.message ?? error}`;
         } finally {
+            // Close the plan item's timing and release its abort controller.
             record.stop = Date.now();
             record.duration = record.stop - record.start;
             context.runEntry.controllers.delete(controller);
 
-            const seconds = (record.duration / 1000).toFixed(2);
-            const label = RunService.getStatusText(record.status);
-            const message = record.message ? ` - ${record.message}` : '';
-
-            // Report the result against the plan item and iteration, so duplicates of a bot stay apart.
-            this._onRunEvent.fire({
-                runId: request.runId,
-                type: 'result',
-                id: record.key,
-                iteration: record.iteration,
-                outcome: record.status,
-                text: record.message
-            });
-            context.log(`${label} ${recordLabel} (${seconds}s)${message}`, RunService.getLogKind(record.status));
+            // Report every execution of the item: one per data row when it was split, otherwise itself.
+            for (const resultRecord of context.rowRecords.get(record) ?? [record]) {
+                this.writeRecordResult(request, resultRecord, context);
+            }
         }
     }
 
@@ -416,6 +424,29 @@ export class RunService implements vscode.Disposable {
             this._logger.error('Allure conversion failed.', undefined, error);
             log(`Allure conversion failed: ${error?.message ?? error}`, 'warn');
         }
+    }
+
+    // Reports one finished execution: a result event for the panel and a console line.
+    private writeRecordResult(request: RunRequest, record: TestRecord, context: TestContext): void {
+        // Compose the console pieces: duration, fixed-width status, and the reason when there is one.
+        const seconds = (record.duration / 1000).toFixed(2);
+        const label = RunService.getStatusText(record.status);
+        const message = record.message ? ` - ${record.message}` : '';
+
+        // Report the result against the plan item, iteration, and data row, so duplicates of a bot,
+        // plan iterations, and data rows all stay apart.
+        this._onRunEvent.fire({
+            runId: request.runId,
+            type: 'result',
+            id: record.key,
+            iteration: record.iteration,
+            dataRow: record.dataRow,
+            outcome: record.status,
+            text: record.message
+        });
+
+        // Write the console line, named so duplicate items, iterations, and data rows read apart.
+        context.log(`${label} ${RunService.getRecordLabel(record)} (${seconds}s)${message}`, RunService.getLogKind(record.status));
     }
 
     // Writes one run console line to the G4 Test Wright output channel: failed and broken bots as warnings (a failed
@@ -486,13 +517,15 @@ export class RunService implements vscode.Disposable {
             .map((candidate) => candidate.pass);
     }
 
-    // Names a record in console lines: the bot id, its plan position, and its iteration, so
-    // duplicate items of the same bot can be told apart ('smoke/login.json #4, iteration 2').
+    // Names a record in console lines: the bot id, its plan position, its iteration, and its data
+    // row, so duplicate items and rows of the same bot can be told apart ('smoke/login.json #4,
+    // iteration 2' or 'smoke/login.json #1, data row 3').
     private static getRecordLabel(record: TestRecord): string {
         const positionText = record.position ? ` #${record.position}` : '';
         const iterationText = record.iteration ? `, iteration ${record.iteration}` : '';
+        const dataRowText = record.dataRow ? `, data row ${record.dataRow}` : '';
 
-        return `${record.id}${positionText}${iterationText}`;
+        return `${record.id}${positionText}${iterationText}${dataRowText}`;
     }
 
     // Names a run in console lines: the run folder name, then "(scheduled run 'label')" for a labeled
@@ -510,13 +543,15 @@ export class RunService implements vscode.Disposable {
         return `${runName} (scheduled run${labelText})`;
     }
 
-    // Builds a unique report file name from the bot id, plan position, and iteration:
-    // 'smoke/login.json' at #4 in iteration 2 -> 'smoke.login.p4.i2.g4rpt'.
+    // Builds a unique report file name from the bot id, plan position, iteration, and data row:
+    // 'smoke/login.json' at #4 in iteration 2 -> 'smoke.login.p4.i2.g4rpt'; data row 3 of the bot's
+    // own data source at #1 -> 'smoke.login.p1.r3.g4rpt'.
     private static newReportFileName(record: TestRecord, usedNames: Set<string>): string {
         const botName = record.id.replace(/\.(json|g4|g4bot)$/i, '').split('/').join('.');
         const positionText = record.position ? `.p${record.position}` : '';
         const iterationText = record.iteration ? `.i${record.iteration}` : '';
-        const baseName = Utilities.newSafeFileName(`${botName}${positionText}${iterationText}`);
+        const dataRowText = record.dataRow ? `.r${record.dataRow}` : '';
+        const baseName = Utilities.newSafeFileName(`${botName}${positionText}${iterationText}${dataRowText}`);
         let fileName = `${baseName}.g4rpt`;
         let counter = 2;
 
@@ -527,6 +562,35 @@ export class RunService implements vscode.Disposable {
         usedNames.add(fileName.toLowerCase());
 
         return fileName;
+    }
+
+    // Starts the record of one data row from its plan item's record: the row's key, values, and
+    // times, with the item's start and the current time as the fallback when the session has none.
+    private static newRowRecord(record: TestRecord, rowResponse: RowResponse | undefined, dataRow: number): TestRecord {
+        // Time the row by its own session; a row without session times (or without a session) takes
+        // the item's start and the current time, so its duration is never negative or from 1970.
+        const isTimed = rowResponse !== undefined && rowResponse.start > 0 && rowResponse.stop > 0;
+        const start = isTimed ? rowResponse.start : record.start;
+        const stop = isTimed ? rowResponse.stop : Date.now();
+
+        // Key the row under the item's own run key, so it stays unique beside iterations and duplicates.
+        const itemRunKey = record.runKey ?? record.key ?? record.id;
+
+        // Copy the item's identity (key, position, iteration, bot) and reset everything the row owns.
+        return {
+            ...record,
+            runKey: `${itemRunKey}~r${dataRow}`,
+            dataRow,
+            values: rowResponse?.values,
+            status: 'running',
+            start,
+            stop,
+            duration: Math.max(0, stop - start),
+            reportFile: '',
+            message: '',
+            assertions: { total: 0, failed: 0 },
+            exceptions: 0
+        };
     }
 
     // Counts records per status.
@@ -571,10 +635,77 @@ export class RunService implements vscode.Disposable {
             exceptions: 0
         };
     }
+
+    // Saves one execution's response as a .g4rpt (the G4 Studio report format, Base64 of the JSON)
+    // and fills the record's status, message, and counts from it.
+    private static async saveRecordResult(record: TestRecord, response: any, context: TestContext): Promise<void> {
+        // Name and write the report file first, so the record points at a file that exists.
+        record.reportFile = RunService.newReportFileName(record, context.usedReportNames);
+        await fs.writeFile(path.join(context.runFolder, record.reportFile), Utilities.convertToBase64(JSON.stringify(response)), 'utf8');
+
+        // Evaluate the response into the Test Wright status of this execution.
+        const evaluation = ResultEvaluator.evaluate(response);
+
+        record.status = evaluation.status;
+        record.message = evaluation.message;
+        record.assertions = evaluation.assertions;
+        record.exceptions = evaluation.exceptions;
+    }
+
+    // Splits a plan item's record into one saved and evaluated record per data row. Rows the data
+    // source holds but the engine returned no session for are recorded as broken, so a lost row is
+    // visible instead of silently missing; the count is known only for a readable, unfiltered source.
+    private static async saveRowRecords(options: RowRecordsOptions): Promise<TestRecord[]> {
+        // Index the returned rows, and walk up to the last returned or expected row, so a row the
+        // engine dropped (inside the range or at the end) still gets its own record.
+        const { record, rowResponses, expectedRowCount, context } = options;
+        const responsesByRow = new Map(rowResponses.map((rowResponse) => [rowResponse.dataRow, rowResponse]));
+        const lastReturnedRow = Math.max(...responsesByRow.keys());
+        const lastRow = Math.max(lastReturnedRow, expectedRowCount ?? 0);
+        const rowRecords: TestRecord[] = [];
+
+        // Walk the rows in data source order, so the reports list them as the source defines them.
+        for (let dataRow = 1; dataRow <= lastRow; dataRow++) {
+            const rowResponse = responsesByRow.get(dataRow);
+            const rowRecord = RunService.newRowRecord(record, rowResponse, dataRow);
+
+            rowRecords.push(rowRecord);
+
+            // Record a row without a session as broken: the engine never reported a result for it.
+            if (rowResponse === undefined) {
+                rowRecord.status = 'broken';
+                rowRecord.message = `The engine returned no result for data row ${dataRow}.`;
+
+                continue;
+            }
+
+            // Save the row's one-session response and evaluate it on its own.
+            await RunService.saveRecordResult(rowRecord, rowResponse.response, context);
+        }
+
+        return rowRecords;
+    }
 }
 
 // Compile-time contracts stay after the executable code, interfaces precede type aliases, and
 // local dependency chains take priority over A-Z sorting.
+
+/**
+ * Inputs of splitting one plan item's record by data row.
+ */
+interface RowRecordsOptions {
+    /** The plan item's record; its key, position, iteration, and times seed every row record. */
+    record: TestRecord;
+
+    /** The split row responses, from ResponseSplitter.getRowResponses (never empty). */
+    rowResponses: RowResponse[];
+
+    /** Rows in the bot's data source, or undefined when unknown (filtered or unreadable source). */
+    expectedRowCount: number | undefined;
+
+    /** The run's shared values: run folder, used report names, and the console. */
+    context: TestContext;
+}
 
 /**
  * One pass of a run: the whole suite runs once per pass.
@@ -596,5 +727,9 @@ interface TestContext {
     runFolder: string;
     runEntry: { controllers: Set<AbortController>; canceled: boolean };
     usedReportNames: Set<string>;
+
+    /** Row records of plan-item records that were split by data row, filled by invokeTest. */
+    rowRecords: Map<TestRecord, TestRecord[]>;
+
     log: (text: string, kind?: string) => void;
 }
