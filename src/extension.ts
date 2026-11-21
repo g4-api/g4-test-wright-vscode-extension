@@ -1,18 +1,39 @@
 import * as vscode from 'vscode';
+
 import { AddPracticeBotsCommand } from './commands/add-practice-bots';
-import { AllureReportService } from './services/allure-report-service';
-import { ConvertRunToAllureCommand, ShowRunReportCommand } from './commands/show-run-report';
-import { DocumentsTreeProvider } from './providers/documents-tree-provider';
+import { ShowComponentGalleryCommand } from './commands/show-component-gallery';
+import {
+    ConvertRunToAllureCommand,
+    ShowRunReportCommand
+} from './commands/show-run-report';
+import {
+    OpenNewTestWrightCommand,
+    ShowTestWrightCommand
+} from './commands/show-test-wright';
+
 import { Global } from './constants/global';
+
+import { Utilities } from './extensions/utilities';
+
+import { DocumentsTreeProvider } from './providers/documents-tree-provider';
 import { RunReportProvider } from './providers/run-report-provider';
+import {
+    TEST_WRIGHT_VIEW_TYPE,
+    TestWrightPanelProvider
+} from './providers/test-wright-panel-provider';
+
+import { AllureReportService } from './services/allure-report-service';
+import { BrandingService } from './services/branding-service';
+import { ManifestBrandingService } from './services/manifest-branding-service';
 import { RunService } from './services/run-service';
 import { SchedulerService } from './services/scheduler-service';
-import { ShowComponentGalleryCommand } from './commands/show-component-gallery';
-import { OpenNewTestWrightCommand, ShowTestWrightCommand } from './commands/show-test-wright';
-import { TEST_WRIGHT_VIEW_TYPE, TestWrightPanelProvider } from './providers/test-wright-panel-provider';
-import { Utilities } from './extensions/utilities';
-import { BrandingService } from './services/branding-service';
-import { SIDE_PANEL_ICON_SETTING, SidePanelIconService } from './services/side-panel-icon-service';
+import {
+    SIDE_PANEL_ICON_SETTING,
+    SidePanelIconService
+} from './services/side-panel-icon-service';
+
+// The button of the offer to reload the window after the manifest labels changed.
+const RELOAD_WINDOW_ACTION = 'Reload Window';
 
 /**
  * Entry point of G4 Studio Test Wright.
@@ -27,6 +48,10 @@ export function activate(context: vscode.ExtensionContext): void {
     // Read the branding the Hub published last time before any label is created, so the output channel and the
     // panels show it from the first moment.
     BrandingService.initialize(context.globalState);
+
+    // Apply the kept branding to the manifest labels, such as the command prefix and the activity bar tooltip, so an
+    // updated extension, which ships the G4 labels, shows the Hub branding again after one reload.
+    void updateManifestBrandingAsync(context);
 
     // Apply the chosen side-panel icon from the local setting or the kept Hub icon; the activity bar shows it from
     // the next start, and panels opened later use it at once.
@@ -75,12 +100,18 @@ export function activate(context: vscode.ExtensionContext): void {
     logger.information(`${BrandingService.getText('{testWright}')} activated. Engine: ${Utilities.getEngineEndpoint()}, project: ${Utilities.getProjectFolder() || '(no workspace)'}.`);
 
     // Refresh the branding from the Hub at the engine address in the background; pages opened afterwards use it,
-    // and the output channel name follows on the next start.
-    // The Hub's side-panel icon is applied once its branding is current; a local setting still wins.
-    const engineEndpoint = Utilities.getEngineEndpoint();
+    // and the manifest labels, the output channel name, and the side-panel icon follow after a reload.
+    void updateBrandingAsync(context);
 
-    void BrandingService.refreshAsync(context.globalState, engineEndpoint)
-        .then(() => updateSidePanelIconAsync(context, engineEndpoint));
+    // Read the branding again whenever the window gains focus, so a branding changed on the Hub reaches this window
+    // without a restart. An unchanged branding costs one 304 answer.
+    const onWindowStateChange = (state: vscode.WindowState): void => {
+        if (state.focused) {
+            void updateBrandingAsync(context);
+        }
+    };
+
+    context.subscriptions.push(vscode.window.onDidChangeWindowState(onWindowStateChange));
 }
 
 /**
@@ -161,6 +192,72 @@ const registerManifestWatcher = (context: vscode.ExtensionContext, panelProvider
         watcher.onDidDelete(onManifestChanged),
         vscode.workspace.onDidChangeWorkspaceFolders(onManifestChanged)
     );
+};
+
+/**
+ * Reads the Hub branding and applies it to every label that is fixed when VS Code starts.
+ *
+ * @remarks
+ * Runs at activation and whenever the window gains focus. Pages opened from now on follow the new branding at once;
+ * the manifest labels and the side-panel icon follow it after a reload. Never throws: an unreachable Hub keeps the
+ * branding in use.
+ *
+ * @param context - The extension context, for the install folder and the global state.
+ */
+const updateBrandingAsync = async (context: vscode.ExtensionContext): Promise<void> => {
+    // Read the Hub branding at the engine address, so the next start uses it before the Hub answers.
+    const engineEndpoint = Utilities.getEngineEndpoint();
+    const isChanged = await BrandingService.refreshAsync(context.globalState, engineEndpoint);
+
+    // Skip the follow-up work when the branding is unchanged, so a focus change writes nothing.
+    if (!isChanged) {
+        return;
+    }
+
+    // Apply the branding to the manifest labels and the side-panel icon; a local icon setting still wins.
+    await updateManifestBrandingAsync(context);
+    await updateSidePanelIconAsync(context, engineEndpoint);
+};
+
+/**
+ * Writes the branded manifest labels and offers a window reload when they changed.
+ *
+ * @remarks
+ * VS Code reads the command prefix, the activity bar tooltip, and the settings title before the extension runs, so a
+ * change shows after a reload. The offer does not wait for the user. A development host is skipped, because its
+ * install folder is the source checkout, whose package.nls.json keeps the G4 defaults.
+ *
+ * @param context - The extension context, for the install folder, the global storage, and the mode.
+ */
+const updateManifestBrandingAsync = async (context: vscode.ExtensionContext): Promise<void> => {
+    // Reload the window when the user accepts the offer, so the new labels show at once.
+    const onReloadChoice = async (choice: string | undefined): Promise<void> => {
+        if (choice === RELOAD_WINDOW_ACTION) {
+            await vscode.commands.executeCommand('workbench.action.reloadWindow');
+        }
+    };
+
+    // Leave a source checkout untouched, so a development run never rewrites the shipped G4 labels.
+    if (context.extensionMode !== vscode.ExtensionMode.Production) {
+        return;
+    }
+
+    // Write the branded labels over the installed ones when they differ.
+    const isUpdated = await ManifestBrandingService.updateAsync({
+        extensionPath: context.extensionPath,
+        getText: (text) => BrandingService.getText(text),
+        globalStoragePath: context.globalStorageUri.fsPath,
+        logger: Global.logger
+    });
+
+    if (!isUpdated) {
+        return;
+    }
+
+    // Offer the reload without waiting, so activation goes on.
+    const message = BrandingService.getText('The {testWright} branding changed. Reload the window to show it in the commands, views, and settings.');
+
+    void vscode.window.showInformationMessage(message, RELOAD_WINDOW_ACTION).then(onReloadChoice);
 };
 
 /**

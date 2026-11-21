@@ -21,6 +21,8 @@ All notable user-visible changes to G4 Studio Test Wright are listed here. The f
 
 ### Fixed
 
+- A bot that runs its own multi-row `dataSource` is reported as one test per data row, in the panel, the run
+  report, `run.json`, and Allure, instead of one test with its steps repeated per row.
 - A scheduled run now runs in the repeated hour of a daylight-saving fall-back (a2df45e).
 - The bot name stays visible in narrow plan rows (954e378).
 - Open panels follow a changed Reports Folder (f2a70de).

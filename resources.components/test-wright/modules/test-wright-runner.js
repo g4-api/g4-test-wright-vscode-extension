@@ -12,6 +12,8 @@
  *   same bot; results come back by item key, so each row gets its own verdict.
  * - With iterations, the whole suite runs once per included iteration; a row shows the result of
  *   its latest iteration while the run goes on, and its worst result when the run ends.
+ * - A bot that runs its own data source reports one result per data row; its row shows the worst
+ *   data row the same way ("1/3 data rows passed. Data row 2: <reason>").
  * - Rows go queued -> running -> result; on Stop, unfinished rows go back to not-run.
  * - A manual run points the Reports repository at the run's folder and refreshes it.
  *
@@ -24,8 +26,34 @@ async function invokePlanRun(items, { parallel = false } = {}) {
     const runItemsByKey = new Map();
     const bots = [];
 
-    // Summarizes one item's results over several iterations: the worst status, and a message such
-    // as "1/2 iterations passed. Iteration 2: <reason>" naming the first iteration that did not pass.
+    // Names one result by its plan iteration and data row: "Iteration 2", "Data row 3", or
+    // "Iteration 2, data row 3" for a bot that runs its own data source in every iteration.
+    const getOutcomeName = (outcome) => {
+        const isIterated = outcome.iteration > 0;
+        const isDataRow = outcome.dataRow > 0;
+
+        if (isIterated && isDataRow) {
+            return `Iteration ${outcome.iteration}, data row ${outcome.dataRow}`;
+        }
+
+        return isDataRow ? `Data row ${outcome.dataRow}` : `Iteration ${outcome.iteration}`;
+    };
+
+    // Names what the results count: data rows, iterations, or runs when an item has both.
+    const getOutcomesUnit = (outcomes) => {
+        const isIterated = outcomes.some((outcome) => outcome.iteration > 0);
+        const isDataRows = outcomes.some((outcome) => outcome.dataRow > 0);
+
+        if (isIterated && isDataRows) {
+            return 'runs';
+        }
+
+        return isDataRows ? 'data rows' : 'iterations';
+    };
+
+    // Summarizes one item's results over several iterations or data rows: the worst status, and a
+    // message such as "1/2 iterations passed. Iteration 2: <reason>" or "2/3 data rows passed.
+    // Data row 2: <reason>" naming the first result that did not pass.
     const getIterationsVerdict = (outcomes) => {
         // Rank statuses from best to worst, so the row shows the worst iteration.
         const ranks = ['not-run', 'passed', 'canceled', 'warning', 'broken', 'failed'];
@@ -36,9 +64,10 @@ async function invokePlanRun(items, { parallel = false } = {}) {
         const passedCount = outcomes.filter((outcome) => outcome.status === 'passed').length;
         const firstProblem = outcomes.find((outcome) => outcome.status !== 'passed');
         const problemReason = firstProblem?.message || getStatusLabel(firstProblem?.status ?? '');
-        const problemText = firstProblem ? ` Iteration ${firstProblem.iteration}: ${problemReason}` : '';
+        const problemText = firstProblem ? ` ${getOutcomeName(firstProblem)}: ${problemReason}` : '';
+        const unitText = getOutcomesUnit(outcomes);
 
-        return { status: worst.status, message: `${passedCount}/${outcomes.length} iterations passed.${problemText}` };
+        return { status: worst.status, message: `${passedCount}/${outcomes.length} ${unitText} passed.${problemText}` };
     };
 
     // Describe every item for the host: its key, position, bot, and one data row per iteration.
@@ -112,8 +141,13 @@ async function invokePlanRun(items, { parallel = false } = {}) {
                     showApp();
                 },
                 onTest: (event) => {
-                    // Keep every iteration's result, so the row can show its worst one at the end.
-                    const outcome = { iteration: event.iteration || 0, status: event.outcome, message: event.text || '' };
+                    // Keep every iteration's and data row's result, so the row can show its worst one at the end.
+                    const outcome = {
+                        iteration: event.iteration || 0,
+                        dataRow: event.dataRow || 0,
+                        status: event.outcome,
+                        message: event.text || ''
+                    };
 
                     runItemsByKey.get(event.id)?.outcomes.push(outcome);
                     applyToRow(event.id, event.outcome, event.text || '');

@@ -163,6 +163,12 @@ export interface RunEvent {
     /** One-based iteration of start and result events; 0 when the plan has no iterations. */
     iteration?: number;
 
+    /**
+     * One-based row of the bot's own data source, for result events of a bot that ran several
+     * rows in one engine call; absent for every other execution.
+     */
+    dataRow?: number;
+
     /** Final status for result events. */
     outcome?: TestStatus;
 
@@ -206,7 +212,10 @@ export interface RunSummary {
  * One bot execution in a run record (run.json): one plan item in one iteration.
  */
 export interface TestRecord {
-    /** Unique execution key: the plan item key, plus "@<iteration>" when the plan has iterations. */
+    /**
+     * Unique execution key: the plan item key, plus "@<iteration>" when the plan has iterations,
+     * plus "~r<data row>" for a row of the bot's own data source.
+     */
     runKey?: string;
 
     /** Plan item key (absent in records written before plan items had keys). */
@@ -217,6 +226,13 @@ export interface TestRecord {
 
     /** One-based iteration; 0 or absent when the plan had no iterations. */
     iteration?: number;
+
+    /**
+     * One-based row of the bot's own data source. Set when the bot ran its own data source (no
+     * plan iterations): the engine answers all rows in one response, which Test Wright splits into
+     * one record per row. Absent for plan iterations (one row per call) and static bots.
+     */
+    dataRow?: number;
 
     /** The data row sent with this execution (column name to value); absent for static bots. */
     values?: Record<string, string>;

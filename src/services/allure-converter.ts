@@ -4,8 +4,9 @@
  * Mapping (mirrors g4-pytest-wrapper's Allure reporter so both produce the same report shape):
  * - One execution (a plan item in one iteration) = one Allure test result. Suite labels:
  *   parentSuite = bots folder name, suite = the bot's folder (suite), plus one tag label per
- *   reference.tags entry. A bot that appears at several plan positions, or a run with iterations,
- *   gets Position, Iteration, and the row values as parameters and its own history id.
+ *   reference.tags entry. A bot that appears at several plan positions, a run with iterations, or
+ *   a row of a bot's own data source gets Position, Iteration or Data row, and the row values as
+ *   parameters, and its own history id (a data row is split into its own execution by the run).
  * - Steps: stage > job > plugin, nested by child plugins. A stage step is written only when the
  *   session has several stages, and a job step only when the stage has several jobs.
  * - Plugin step attachments: the assertion entities (Assert), screenshots, and the exceptions JSON.
@@ -291,13 +292,19 @@ export class AllureConverter {
      * @param record - The run record.
      * @param test - The execution.
      * @returns The bot id, plus the plan position when the bot appears more than once, plus the
-     * iteration when the plan has iterations ('smoke/login.json#4@2').
+     * iteration when the plan has iterations ('smoke/login.json#4@2'), plus the data row for a row
+     * of the bot's own data source ('smoke/login.json~r3').
+     *
+     * @remarks
+     * Allure treats results that share a history id as retries of one test, so every data row
+     * needs its own key; the row number keeps a row's history across runs.
      */
     public static getHistoryKey(record: RunRecord, test: TestRecord): string {
         const positionText = AllureConverter.testDuplicate(record, test) ? `#${test.position}` : '';
         const iterationText = test.iteration ? `@${test.iteration}` : '';
+        const dataRowText = test.dataRow ? `~r${test.dataRow}` : '';
 
-        return `${test.id}${positionText}${iterationText}`;
+        return `${test.id}${positionText}${iterationText}${dataRowText}`;
     }
 
     /**
@@ -305,8 +312,8 @@ export class AllureConverter {
      *
      * @param record - The run record.
      * @param test - The execution.
-     * @returns Position (for a bot that appears more than once), Iteration, and the row values;
-     * empty for a single bot run without iterations, so its title stays plain.
+     * @returns Position (for a bot that appears more than once), Iteration or Data row, and the row
+     * values; empty for a single bot run without iterations or data rows, so its title stays plain.
      */
     public static newParameters(record: RunRecord, test: TestRecord): AllureParameter[] {
         const parameters: AllureParameter[] = [];
@@ -319,6 +326,11 @@ export class AllureConverter {
         // Name the iteration and the values it sent, so each row reads as its own test case.
         if (test.iteration) {
             parameters.push({ name: 'Iteration', value: `${test.iteration}` });
+        }
+
+        // Name the row of the bot's own data source, so each row reads as its own test case too.
+        if (test.dataRow) {
+            parameters.push({ name: 'Data row', value: `${test.dataRow}` });
         }
 
         for (const [name, value] of Object.entries(test.values ?? {})) {

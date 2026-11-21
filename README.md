@@ -116,11 +116,15 @@ bot's **columns**; a bot without them is **static** and runs unchanged.
   runs every item, then iteration 2 runs every item again with the next row. Each item sends its row
   as a one-row data source (Base64), which replaces the bot's own `dataSource` for that run only.
   Static bots run in every iteration. A plan with no iterations runs once, as before.
+* A bot that runs its **own** `dataSource` (a plan without iterations) gets every row back from the engine in one
+  answer. Test Wright splits that answer into **one execution per data row**, so each row is its own test in the
+  panel, the run report, `run.json`, and Allure, named `data row N`. A row the engine returned no result for is
+  recorded as broken.
 * **Import** and **Export** read and write the iterations as a JSON data file (`g4-test-wright-data`).
   Items match by key in the same plan, or by position and bot in another plan.
-* Results: each execution is recorded with its position, iteration, and values (`run.json`, the run
-  report, and Allure parameters); a plan row shows its worst iteration, for example
-  `1/2 iterations passed`.
+* Results: each execution is recorded with its position, iteration or data row, and values (`run.json`, the run
+  report, and Allure parameters); a plan row shows its worst iteration or data row, for example
+  `1/2 iterations passed` or `2/3 data rows passed`.
 
 Plans saved with iterations are version 2 plan files; version 1 plans still load.
 
@@ -145,7 +149,8 @@ reports/
 ├── 20261008-213643/               # run name: yyyyMMdd-HHmmss
 │   ├── run.json                   # run summary: settings, tally, one entry per execution
 │   ├── a.p1.g4rpt                 # G4 automation report per execution (Base64 JSON)
-│   └── smoke.login.p2.i1.g4rpt    # plan position 2, iteration 1
+│   ├── smoke.login.p2.i1.g4rpt    # plan position 2, iteration 1
+│   └── users.p3.r2.g4rpt          # plan position 3, row 2 of the bot's own data source
 ├── 20261008-213643-allure/
 │   ├── results/                   # written when Collect is on
 │   └── report/                    # built when you open the Allure report
