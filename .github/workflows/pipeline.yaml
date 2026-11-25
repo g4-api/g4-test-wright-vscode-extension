@@ -70,6 +70,11 @@ jobs:
       shell: pwsh
       run: npm run lint
 
+    # The unit tests run the reporting code in plain Node with a vscode stand-in; a failure stops the release.
+    - name: Invoke Unit Tests
+      shell: pwsh
+      run: npm run test:unit
+
     - name: Install VSCE
       shell: pwsh
       run: npm install -g @vscode/vsce@latest --force
