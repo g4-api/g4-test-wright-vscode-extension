@@ -2,7 +2,20 @@
 
 All notable user-visible changes to G4 Studio Test Wright are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## Unreleased
+## 2026.11.14
+
+### Added
+
+- Unit tests for the reporting code run with `npm run test:unit` and in the release pipeline. They check the status
+  and the Allure steps of responses with Parallel containers and Input Actions Groups.
+
+### Changed
+
+- The README describes the build and test commands instead of linking to a guide outside the repository.
+
+## Earlier releases
+
+These changes shipped in the releases up to 2026.11.13. The commit in parentheses identifies each one.
 
 ### Added
 
