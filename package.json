@@ -188,14 +188,17 @@
         "compile": "webpack",
         "watch": "webpack --watch",
         "package": "webpack --mode production --devtool hidden-source-map",
-        "lint": "eslint src"
+        "lint": "eslint src",
+        "test:unit": "tsc -p tsconfig.test.json && mocha --require out/test/unit/vscode-stub.js \"out/test/unit/**/*.test.js\""
     },
     "devDependencies": {
+        "@types/mocha": "^10.0.10",
         "@types/node": "20.x",
         "@types/vscode": "^1.105.0",
         "@typescript-eslint/eslint-plugin": "^8.31.1",
         "@typescript-eslint/parser": "^8.31.1",
         "eslint": "^9.25.1",
+        "mocha": "^11.7.6",
         "ts-loader": "^9.5.2",
         "typescript": "^5.8.3",
         "webpack": "^5.99.7",

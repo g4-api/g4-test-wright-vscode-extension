@@ -213,4 +213,16 @@ Press **F5** in VS Code to start an Extension Development Host. In that host, **
 
 ## Contributing and builds
 
-Build tools, test commands, version numbers, Docker images and development ports are in the [build, test and release guide](../g4-github-actions/docs/build-test-release.md).
+Build and test with Node.js from the repository root:
+
+```powershell
+npm ci
+npm run lint
+npm run test:unit
+npm run compile
+```
+
+`npm run test:unit` compiles the tests under `src/test/unit` and runs them with mocha in plain Node, with a stand-in for
+the `vscode` module. The tests cover how Test Wright reports engine responses, including Parallel containers and Input
+Actions Groups. The release pipeline runs the lint and the unit tests on every release and stops when either fails.
+Changes are listed in the [changelog](docs/CHANGELOG.md).
